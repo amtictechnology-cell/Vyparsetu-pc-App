@@ -1,0 +1,208 @@
+<div style="display: flex; height: 100vh; width: 100%; overflow: hidden; background-color: #f0f4fc; font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box;">
+
+  <!-- Left Main Content Area -->
+  <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+    
+    <!-- Top Header Bar -->
+    <div style="background-color: #ffffff; display: flex; align-items: center; justify-content: space-between; padding: 1rem 2rem; border-bottom: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+      <div>
+        <h2 style="margin: 0; font-size: 1.4rem; font-weight: 800; color: #1e293b;">Generate Invoice</h2>
+        <div *ngIf="customer" style="color: #0059ff; font-weight: 700; font-size: 0.9rem; margin-top: 4px;">
+          {{ customer.customerName || 'Customer' }} ({{ customer.mobileNumber || 'N/A' }})
+        </div>
+        <div style="font-size: 0.75rem; color: #495057; font-weight: 600; margin-top: 2px;">
+          {{ currentDate | date:'dd/MM/yyyy' }}
+        </div>
+      </div>
+
+      <!-- Search Bar -->
+      <div style="flex-grow: 1; max-width: 400px; margin: 0 2rem;">
+        <input 
+          type="text" 
+          placeholder="Search Food" 
+          [(ngModel)]="searchQuery" 
+          style="width: 100%; height: 42px; border-radius: 20px; border: 1.5px solid #0059ff; padding: 0 16px; font-weight: 600; font-size: 0.95rem; outline: none; background-color: white;"
+        />
+      </div>
+
+      <!-- Close Button -->
+      <button (click)="goBack()" style="background: none; border: none; font-size: 1.8rem; cursor: pointer; color: #495057;">
+        &times;
+      </button>
+    </div>
+
+    <!-- Category Filters Area -->
+    <div style="padding: 1.5rem 2rem 1rem 2rem; display: flex; gap: 1rem; overflow-x: auto; scrollbar-width: none;">
+      <!-- All Filter -->
+      <button 
+        (click)="selectedCategory = 'All'"
+        [style.backgroundColor]="selectedCategory === 'All' ? '#ff6600' : '#0059ff'"
+        [style.color]="'white'"
+        style="border: none; border-radius: 50%; width: 70px; height: 70px; font-weight: 800; font-size: 0.9rem; cursor: pointer; flex-shrink: 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.1s;"
+        onmouseover="this.style.transform='scale(1.05)'"
+        onmouseout="this.style.transform='scale(1)'"
+      >
+        All
+      </button>
+      
+      <!-- Dynamic Categories -->
+      <button 
+        *ngFor="let cat of categories"
+        (click)="selectedCategory = cat"
+        [style.backgroundColor]="selectedCategory === cat ? '#ff6600' : '#0059ff'"
+        [style.color]="'white'"
+        style="border: none; border-radius: 50%; width: 70px; height: 70px; font-weight: 800; font-size: 0.9rem; cursor: pointer; flex-shrink: 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.1s; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.1;"
+        onmouseover="this.style.transform='scale(1.05)'"
+        onmouseout="this.style.transform='scale(1)'"
+      >
+        {{ cat }}
+      </button>
+    </div>
+
+    <!-- Item Grid Area -->
+    <div style="flex: 1; overflow-y: auto; padding: 1rem 2rem 2rem 2rem;">
+      
+      <div *ngIf="loading" style="text-align: center; padding: 3rem;">
+        <span class="btn-spinner" style="border-top-color: #0059ff; display: inline-block; width: 40px; height: 40px; border-width: 4px;"></span>
+        <p style="margin-top: 1rem; color: #495057; font-weight: 600;">Loading menu items...</p>
+      </div>
+
+      <div *ngIf="!loading" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 1rem;">
+        
+        <!-- Item Card -->
+        <div *ngFor="let item of filteredItems" style="background-color: white; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+          
+          <!-- Card Top (Light Orange Background) -->
+          <div style="background-color: #fff5f0; flex: 1; padding: 1rem 0.75rem; text-align: center; display: flex; flex-direction: column; justify-content: center; min-height: 90px; border-bottom: 1px solid #ffebe0;">
+            <div style="font-weight: 800; font-size: 0.95rem; color: #1e293b; margin-bottom: 0.4rem; word-break: break-word; line-height: 1.2;">{{ item.itemName }}</div>
+            <div style="font-weight: 700; font-size: 0.9rem; color: #ff6600;">₹ {{ item.rate }}</div>
+          </div>
+          
+          <!-- Card Bottom (Add/Remove Counter) -->
+          <div style="padding: 12px; display: flex; justify-content: center; background-color: white;">
+            
+            <!-- Quantity Selector -->
+            <div *ngIf="getItemQty(item) > 0" style="display: flex; align-items: center; border: 1.5px solid #0059ff; border-radius: 20px; padding: 2px 10px; width: 100px; justify-content: space-between;">
+              <button (click)="decrementQty(item)" style="background: none; border: none; font-size: 1.2rem; font-weight: 800; cursor: pointer; color: #0059ff; padding: 0 4px;">−</button>
+              <span style="font-weight: 800; font-size: 1rem; color: #0059ff;">{{ getItemQty(item) }}</span>
+              <button (click)="incrementQty(item)" style="background: none; border: none; font-size: 1.2rem; font-weight: 800; cursor: pointer; color: #0059ff; padding: 0 4px;">+</button>
+            </div>
+
+            <!-- Add Button (when qty is 0) -->
+            <button 
+              *ngIf="getItemQty(item) === 0" 
+              (click)="incrementQty(item)" 
+              style="background-color: white; border: 1.5px solid #0059ff; border-radius: 20px; padding: 4px 20px; font-weight: 800; font-size: 0.95rem; cursor: pointer; color: #0059ff; width: 100px; transition: background-color 0.1s;"
+              onmouseover="this.style.backgroundColor='#0059ff'; this.style.color='white';"
+              onmouseout="this.style.backgroundColor='white'; this.style.color='#0059ff';"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <div *ngIf="!loading && filteredItems.length === 0" style="text-align: center; padding: 3rem; color: #868e96; font-weight: 600;">
+        No items found in this category.
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Sidebar (Invoice/Cart Summary) -->
+  <div style="flex: 0 0 auto; width: 420px; max-width: 45%; background-color: #fafafa; border-left: 1px solid #dee2e6; display: flex; flex-direction: column; z-index: 10;">
+    
+    <!-- Cart Table Header -->
+    <div style="padding: 2rem 1.5rem 1rem 1.5rem;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="border-bottom: 2px solid #dee2e6;">
+            <th style="text-align: left; font-size: 0.8rem; font-weight: 800; padding-bottom: 8px;">Item</th>
+            <th style="text-align: center; font-size: 0.8rem; font-weight: 800; padding-bottom: 8px; width: 50px;">Qty</th>
+            <th style="text-align: right; font-size: 0.8rem; font-weight: 800; padding-bottom: 8px; width: 70px;">Amount</th>
+          </tr>
+        </thead>
+      </table>
+    </div>
+
+    <!-- Cart Items List -->
+    <div style="flex: 1; overflow-y: auto; padding: 0 1.5rem; scrollbar-width: thin; scrollbar-color: #adb5bd #f1f3f5;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <tbody>
+          <tr *ngFor="let cartItem of cart; let i = index">
+            <td style="padding: 8px 0; font-size: 0.85rem; font-weight: 600; color: #495057;">
+              <span style="color: #adb5bd; margin-right: 6px; font-size: 0.75rem;">{{ i + 1 }}</span>
+              {{ cartItem.item.itemName }}
+            </td>
+            <td style="padding: 8px 0; font-size: 0.85rem; font-weight: 700; color: #212529; text-align: center;">
+              {{ cartItem.qty }}
+            </td>
+            <td style="padding: 8px 0; font-size: 0.85rem; font-weight: 700; color: #212529; text-align: right;">
+              {{ cartItem.qty * cartItem.item.rate }}
+            </td>
+          </tr>
+          <tr *ngIf="cart.length === 0">
+            <td colspan="3" style="text-align: center; padding: 2rem 0; color: #adb5bd; font-size: 0.85rem; font-weight: 600;">
+              Cart is empty
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Total Area -->
+    <div style="padding: 1.5rem; background-color: white; border-top: 1px solid #dee2e6;">
+      <div style="background-color: #f1f3f5; border-radius: 8px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <span style="font-weight: 800; font-size: 0.95rem; color: #495057;">Total Amount</span>
+        <span style="font-weight: 900; font-size: 1.15rem; color: #000000;">{{ totalAmount }}</span>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: 0.5rem;">
+        <button 
+          (click)="cancelBill()"
+          style="background-color: #fa5252; color: white; border: none; border-radius: 6px; padding: 10px; font-weight: 800; font-size: 0.85rem; cursor: pointer;"
+        >
+          Cancel
+        </button>
+        <button 
+          (click)="createBill(false)"
+          [disabled]="submitting || cart.length === 0"
+          style="background-color: #ff6600; color: white; border: none; border-radius: 6px; padding: 10px; font-weight: 800; font-size: 0.85rem; cursor: pointer;"
+        >
+          Create
+        </button>
+        <button 
+          (click)="createBill(true)"
+          [disabled]="submitting || cart.length === 0"
+          style="background-color: #0059ff; color: white; border: none; border-radius: 6px; padding: 10px; font-weight: 800; font-size: 0.85rem; cursor: pointer; display: flex; justify-content: center; align-items: center;"
+        >
+          <span *ngIf="!submitting">Create & Print</span>
+          <span *ngIf="submitting" class="btn-spinner" style="width: 16px; height: 16px; border-width: 2px;"></span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Success Popup Modal -->
+<div *ngIf="showSuccessPopup" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 9999;">
+  <div style="background-color: white; border-radius: 16px; padding: 2.5rem; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-width: 400px; width: 90%; animation: popIn 0.3s ease-out;">
+    <div style="width: 70px; height: 70px; background-color: #e6f0ff; color: #0059ff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 2rem; margin: 0 auto 1.5rem auto;">
+      ✓
+    </div>
+    <h3 style="margin: 0 0 0.5rem 0; font-size: 1.5rem; font-weight: 800; color: #1e293b;">Thank You!</h3>
+    <p style="margin: 0 0 1.5rem 0; font-size: 1rem; color: #495057; font-weight: 500;">
+      Bill generated successfully for <br>
+      <strong style="color: #ff6600; font-size: 1.8rem; display: block; margin-top: 0.8rem;">₹ {{ lastBillAmount }}</strong>
+    </p>
+
+  </div>
+</div>
+<style>
+  @keyframes popIn {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+</style>

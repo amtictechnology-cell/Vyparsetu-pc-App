@@ -1,0 +1,108 @@
+<div class="verify-wrapper">
+  <div class="verify-card">
+    
+    <ng-container *ngIf="!isSupplierRestricted">
+      <div class="back-link">
+        <a routerLink="/login">← Change Number</a>
+      </div>
+
+      <div class="verify-header">
+        <h3>Verify OTP</h3>
+        <p>Enter the 4-digit code sent to <strong>+91 {{ mobileNo }}</strong></p>
+      </div>
+
+      <form (ngSubmit)="onSubmit()">
+        <div class="otp-container">
+          <input 
+            #otpInput
+            type="text" 
+            maxlength="1" 
+            class="otp-box"
+            [value]="otp[0]"
+            (input)="onInput($event, 0)"
+            (keydown)="onKeyDown($event, 0)"
+            autocomplete="off"
+          />
+          <input 
+            #otpInput
+            type="text" 
+            maxlength="1" 
+            class="otp-box"
+            [value]="otp[1]"
+            (input)="onInput($event, 1)"
+            (keydown)="onKeyDown($event, 1)"
+            autocomplete="off"
+          />
+          <input 
+            #otpInput
+            type="text" 
+            maxlength="1" 
+            class="otp-box"
+            [value]="otp[2]"
+            (input)="onInput($event, 2)"
+            (keydown)="onKeyDown($event, 2)"
+            autocomplete="off"
+          />
+          <input 
+            #otpInput
+            type="text" 
+            maxlength="1" 
+            class="otp-box"
+            [value]="otp[3]"
+            (input)="onInput($event, 3)"
+            (keydown)="onKeyDown($event, 3)"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="error-box" *ngIf="errorMessage">
+          <span>⚠️</span> {{ errorMessage }}
+        </div>
+
+        <button 
+          type="submit" 
+          class="submit-btn"
+          [disabled]="otp[0] === '' || otp[1] === '' || otp[2] === '' || otp[3] === '' || loading"
+        >
+          <span *ngIf="!loading">Verify & Proceed</span>
+          <span *ngIf="loading" class="btn-spinner"></span>
+        </button>
+      </form>
+
+      <div class="resend-section">
+        <p *ngIf="resendCountdown > 0">
+          Didn't receive code? Resend in <strong>{{ resendCountdown }}s</strong>
+        </p>
+        <button 
+          *ngIf="resendCountdown === 0" 
+          class="resend-btn" 
+          (click)="resendOtp()"
+        >
+          Resend OTP
+        </button>
+      </div>
+    </ng-container>
+
+    <!-- Supplier Restriction Message -->
+    <ng-container *ngIf="isSupplierRestricted">
+      <div style="text-align: center; padding: 1rem 0;">
+        <div style="width: 70px; height: 70px; background-color: #fff0e6; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 1.5rem; color: #ff6600; font-size: 1.8rem;">
+          <i class="fa-solid fa-mobile-screen"></i>
+        </div>
+        <h3 style="margin: 0 0 1rem 0; font-size: 1.5rem; font-weight: 850; color: #1e293b;">App Only Access</h3>
+        <p style="color: #495057; font-size: 1.05rem; line-height: 1.6; margin-bottom: 2rem;">
+          Supplier user ke liye <strong>Only Mobile App</strong> available hai. Please login via our mobile application.
+        </p>
+        <button 
+          (click)="closeRestriction()" 
+          style="width: 100%; height: 52px; background-color: #0059ff; color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: background-color 0.2s;"
+          onmouseover="this.style.backgroundColor='#0043c2'"
+          onmouseout="this.style.backgroundColor='#0059ff'"
+        >
+          Close & Back to Login
+        </button>
+      </div>
+    </ng-container>
+
+  </div>
+</div>

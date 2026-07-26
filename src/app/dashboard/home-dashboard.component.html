@@ -1,0 +1,107 @@
+<div class="dashboard-layout" *ngIf="!loading">
+  <!-- Left Column: Personal Profile Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand" style="margin-bottom: 2rem; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 0 10px;">
+      <div style="font-size: 2.0rem; font-weight: 700; letter-spacing: 0.5px; display: flex; align-items: center; gap: 2px;">
+        <span class="vyapar" style="color: #0059ff; font-weight: 850; font-size:2.5rem ">Vyapar</span><span class="setu" style="color: #ff6600; font-weight: 850; font-size:2.5rem ">Setu</span>
+      </div>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="sidebar-nav">
+      <ul>
+        <li routerLink="/home/insights" routerLinkActive="active">
+          <span class="nav-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></span>
+          <span class="nav-text">Insights Overview</span>
+        </li>
+        <li routerLink="/home/billing" routerLinkActive="active">
+          <span class="nav-icon"><i class="fa-regular fa-pen-to-square"></i></span>
+          <span class="nav-text">Bill Generate</span>
+        </li>
+        <li routerLink="/home/rooms" routerLinkActive="active">
+          <span class="nav-icon"><i class="fa-solid fa-bed"></i></span>
+          <span class="nav-text">Booking Room</span>
+        </li>
+        <li routerLink="/home/drivers" routerLinkActive="active">
+          <span class="nav-icon"><i class="fa-solid fa-car"></i></span>
+          <span class="nav-text">Driver Management</span>
+        </li>
+        <li routerLink="/home/staff" routerLinkActive="active">
+          <span class="nav-icon"><i class="fa-solid fa-users"></i></span>
+          <span class="nav-text">Staff Management</span>
+        </li>
+        <li routerLink="/home/items" routerLinkActive="active">
+          <span class="nav-icon"><i class="fa-solid fa-clipboard"></i></span>
+          <span class="nav-text">Menu</span>
+        </li>
+        <li routerLink="/home/profile" routerLinkActive="active">
+          <span class="nav-icon"><i class="fa-solid fa-circle-user"></i></span>
+          <span class="nav-text">My Profile</span>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Bottom Actions -->
+    <div class="sidebar-footer">
+      <button class="logout-sidebar-btn" (click)="openLogoutModal()">
+        <span><i class="fa-solid fa-arrow-right-from-bracket"></i></span> Logout Account
+      </button>
+    </div>
+  </aside>
+
+  <!-- Right Column: Operations Container -->
+  <main class="main-content-area">
+    
+    <!-- Top Bar -->
+    <header class="content-header">
+      <div class="header-info">
+        <span class="date-tag" style="border: none; background: #f9f4f1; color: #475569; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 700; font-size: 0.85rem;"> {{ todayDate | date:'mediumDate' }}</span>
+      </div>
+      <div class="user-top-profile" style="display: flex; align-items: center; gap: 12px;">
+        <div style="text-align: right; display: flex; flex-direction: column; justify-content: center;">
+          <span style="font-weight: 850; font-size: 0.95rem; color: #1e293b; letter-spacing: -0.2px; line-height: 1.2;">{{ user?.businessName || 'My Business' }}</span>
+          <span style="font-size: 0.78rem; font-weight: 750; color: #1e293b; opacity: 0.85; margin-top: 2px;"> {{ user?.name || 'Owner' }}</span>
+        </div>
+        <div style="width: 40px; height: 40px; border-radius: 50%; background: #1e293b; color: #ffffff; font-weight: 850; font-size: 1.15rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(30, 41, 59, 0.25);">
+          {{ (user?.businessName || 'B').charAt(0).toUpperCase() }}
+        </div>
+      </div>
+    </header>
+
+    <!-- Switch Case Container for Child Routes -->
+    <div class="tab-content-panel">
+      <router-outlet></router-outlet>
+    </div>
+
+  </main>
+</div>
+
+<!-- Plan Modal Component -->
+<app-plan-modal [user]="user" (subscribed)="onSubscribed()"></app-plan-modal>
+
+<!-- Logout Confirmation Modal -->
+<div class="modal-overlay" *ngIf="showLogoutModal" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.55); display: flex; justify-content: center; align-items: center; z-index: 2000;">
+  <div class="modal-sheet" style="background: white; border-radius: 20px; width: 100%; max-width: 400px; padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.15); text-align: center;">
+    <div style="margin-bottom: 1.5rem;">
+      <div style="width: 60px; height: 60px; background-color: #fff0e6; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 1rem; color: #ff6600; font-size: 1.5rem;">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+      </div>
+      <h3 style="margin: 0; font-size: 1.35rem; font-weight: 850; color: #000000;">Are you sure?</h3>
+      <p style="margin: 0.5rem 0 0 0; color: #495057; font-size: 0.95rem;">Do you really want to logout of your account?</p>
+    </div>
+    <div style="display: flex; gap: 1rem; justify-content: center;">
+      <button type="button" style="height: 44px; border-radius: 8px; border: none; padding: 0 20px; font-weight: 700; cursor: pointer; background-color: #0059ff; color: white; flex: 1;" (click)="closeLogoutModal()">
+        Cancel
+      </button>
+      <button type="button" style="background-color: #ff6600; color: white; border: none; height: 44px; padding: 0 25px; border-radius: 8px; font-weight: 800; cursor: pointer; flex: 1;" (click)="logout()">
+        Logout
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Loader -->
+<div class="loading-container" *ngIf="loading">
+  <div class="spinner"></div>
+  <p>Verifying session details and setting up your workspace...</p>
+</div>

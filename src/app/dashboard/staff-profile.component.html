@@ -1,0 +1,365 @@
+<div class="dashboard-container" style="min-height: 100vh; background-color: #f8f9fa; padding: 1.5rem; box-sizing: border-box; font-family: 'Inter', sans-serif;">
+  
+  <!-- Back Header Navigation: Simple text, no card style -->
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; padding: 0.5rem 0;">
+    <div style="display: flex; align-items: center; gap: 0.75rem;">
+      <button 
+        type="button" 
+        style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: #000000; padding: 0; display: flex; align-items: center; justify-content: center; transition: transform 0.2s;"
+        (click)="goBack()"
+        title="Go back"
+        onmouseover="this.style.transform='scale(1.15)'"
+        onmouseout="this.style.transform='scale(1)'"
+      >
+        <i class="fa-solid fa-arrow-left"></i>
+      </button>
+      <div style="text-align: left;">
+        <h2 style="margin: 0; font-size: 1.35rem; font-weight: 800; color: #0059ff; letter-spacing: -0.3px;">Staff Profile & Attendance</h2>
+        <p style="margin: 0.1rem 0 0 0; color: #64748b; font-size: 0.82rem; font-weight: 550;">Manage employee details, review attendance logs and calculate monthly pay rates.</p>
+      </div>
+    </div>
+
+    <div>
+      <span style="background-color: #ffffff; color: #000000; border: 1.5px solid #dee2e6; padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+        <i class="fa-regular fa-address-card" style="color: #64748b;"></i> Staff ID: {{ staffId }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Main Profile Body -->
+  <div style="display: flex; flex-direction: column; gap: 1.5rem;" *ngIf="!loading">
+    
+    <!-- 1. Employee Details Card -->
+    <div style="background: white; border-radius: 16px; padding: 1.5rem 2rem; border: 1.5px solid #dee2e6; box-shadow: 0 4px 15px rgba(0,0,0,0.02); text-align: left;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1.5px solid #f1f3f5; padding-bottom: 0.75rem;">
+        <h3 style="margin: 0; color: #0059ff; font-size: 1.05rem; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-user-tie"></i> Employee Details
+        </h3>
+        <button 
+          type="button" 
+          style="background: #ffffff; color: #0059ff; border: 1.5px solid #0059ff; height: 32px; padding: 0 12px; border-radius: 6px; font-weight: 750; cursor: pointer; font-size: 0.78rem; display: flex; align-items: center; gap: 6px; transition: background 0.2s;"
+          (click)="openEditStaff()"
+          onmouseover="this.style.backgroundColor='#eaf0fd'"
+          onmouseout="this.style.backgroundColor='#ffffff'"
+        >
+          <i class="fa-solid fa-pen" style="font-size: 0.75rem;"></i> Edit Details
+        </button>
+      </div>
+
+      <!-- Split content: Details vs. Payout -->
+      <div style="display: grid; grid-template-columns: 2.2fr 1fr; gap: 3rem; align-items: center;">
+        
+        <!-- Left details block -->
+        <div style="display: flex; gap: 2.5rem; align-items: center;">
+          <!-- Cartoonish avatar -->
+          <div style="position: relative; width: 110px; height: 110px; flex-shrink: 0;">
+            <div style="width: 100%; height: 100%; border-radius: 50%; background-color: #d1ebd6; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 3px solid #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.06);">
+              <!-- Cartoonish Face SVG to mimic image -->
+              <svg viewBox="0 0 100 100" style="width: 85%; height: 85%; transform: translateY(5px);">
+                <circle cx="50" cy="45" r="28" fill="#ffd1b3" />
+                <path d="M22 45 C22 20, 78 20, 78 45 C78 24, 22 24, 22 45" fill="#2c2c2c" />
+                <path d="M22 45 C22 30, 35 25, 45 35 C55 25, 78 30, 78 45 C73 45, 68 40, 60 42 C52 40, 48 45, 45 45 C35 45, 27 40, 22 45" fill="#2c2c2c" />
+                <circle cx="40" cy="45" r="3" fill="#2c2c2c" />
+                <circle cx="60" cy="45" r="3" fill="#2c2c2c" />
+                <circle cx="36" cy="51" r="4" fill="#ff9999" opacity="0.6" />
+                <circle cx="64" cy="51" r="4" fill="#ff9999" opacity="0.6" />
+                <path d="M46 54 Q50 58 54 54" stroke="#2c2c2c" stroke-width="2.5" fill="none" stroke-linecap="round" />
+                <path d="M44 70 L44 76 L56 76 L56 70 Z" fill="#ffd1b3" />
+                <path d="M26 76 C26 76, 32 64, 50 64 C68 64, 74 76, 74 76 Z" fill="#ffcb47" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Details grid -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 2rem; flex-grow: 1; line-height: 1.4; font-size: 0.8rem;">
+            <div>
+              <span style="color: #868e96; font-weight: 700; font-size: 0.72rem; display: block; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 2px;">Full Name</span>
+              <strong style="color: #000000; font-size: 0.95rem; font-weight: 800;">{{ staff?.name }}</strong>
+            </div>
+            <div>
+              <span style="color: #868e96; font-weight: 700; font-size: 0.72rem; display: block; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 2px;">Mobile Number</span>
+              <strong style="color: #000000; font-size: 0.95rem; font-weight: 800;">{{ staff?.mobile }}</strong>
+            </div>
+            <div>
+              <span style="color: #868e96; font-weight: 700; font-size: 0.72rem; display: block; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 2px;">Base Salary (Monthly)</span>
+              <strong style="color: #000000; font-size: 0.95rem; font-weight: 800;">₹{{ staff?.salary }}</strong>
+            </div>
+            <div>
+              <span style="color: #868e96; font-weight: 700; font-size: 0.72rem; display: block; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 2px;">Permanent Address</span>
+              <strong style="color: #000000; font-size: 0.95rem; font-weight: 800;">{{ staff?.address || 'N/A' }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right payout details -->
+        <div style="display: flex; flex-direction: column; justify-content: center; align-items: flex-start; border-left: 1.5px dashed #dee2e6; padding-left: 3rem; height: 100px;">
+          <span style="color: #868e96; font-weight: 700; font-size: 0.72rem; display: block; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 0.25rem;">Estimated Monthly Payout</span>
+          <strong style="color: #ff6600; font-size: 2.2rem; font-weight: 900; letter-spacing: -0.5px;">₹{{ earnedSalary }}</strong>
+          <span style="color: #868e96; font-size: 0.75rem; font-weight: 600; margin-top: 2px;">Based on attendance ledger below</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 2. Attendance Ledger Calendar Card -->
+    <div style="background: white; border-radius: 16px; padding: 1.5rem 2rem; border: 1.5px solid #dee2e6; box-shadow: 0 4px 15px rgba(0,0,0,0.02); text-align: left;">
+      
+      <!-- Card header -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #f1f3f5; padding-bottom: 1rem;">
+        <h3 style="margin: 0; color: #0059ff; font-size: 1.05rem; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-regular fa-calendar-days"></i> Attendance Ledger Calendar
+        </h3>
+        
+        <!-- Filters (Month / Year) -->
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <select 
+            [(ngModel)]="selectedMonth" 
+            (change)="fetchAttendanceOnly()"
+            style="height: 34px; border-radius: 6px; border: 1.5px solid #dee2e6; padding: 0 8px; font-weight: 700; font-size: 0.8rem; background-color: white; color: #495057;"
+          >
+            <option *ngFor="let m of months" [value]="m.value">{{ m.name }}</option>
+          </select>
+          <select 
+            [(ngModel)]="selectedYear" 
+            (change)="fetchAttendanceOnly()"
+            style="height: 34px; border-radius: 6px; border: 1.5px solid #dee2e6; padding: 0 8px; font-weight: 700; font-size: 0.8rem; background-color: white; color: #495057;"
+          >
+            <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Stats Summary cards (5 inline cards) -->
+      <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; margin-bottom: 1.5rem;">
+        <!-- PRESENT -->
+        <div style="background-color: #e6f4ea; border: 1.5px solid #c3fae8; border-radius: 8px; padding: 0.75rem 1rem; text-align: left; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <span style="font-size: 0.68rem; font-weight: 800; color: #137333; text-transform: uppercase; display: block; margin-bottom: 2px;">Present (P)</span>
+            <strong style="font-size: 1.5rem; color: #137333; font-weight: 900;">{{ daysPresent }}</strong>
+          </div>
+          <i class="fa-regular fa-calendar-check" style="font-size: 1.4rem; color: #137333; opacity: 0.8;"></i>
+        </div>
+        <!-- HALF DAY -->
+        <div style="background-color: #fffde7; border: 1.5px solid #ffe066; border-radius: 8px; padding: 0.75rem 1rem; text-align: left; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <span style="font-size: 0.68rem; font-weight: 800; color: #b06000; text-transform: uppercase; display: block; margin-bottom: 2px;">Half Day (HD)</span>
+            <strong style="font-size: 1.5rem; color: #b06000; font-weight: 900;">{{ daysHalfDay }}</strong>
+          </div>
+          <i class="fa-regular fa-clock" style="font-size: 1.4rem; color: #b06000; opacity: 0.8;"></i>
+        </div>
+        <!-- PAID LEAVE -->
+        <div style="background-color: #e3f2fd; border: 1.5px solid #bbdefb; border-radius: 8px; padding: 0.75rem 1rem; text-align: left; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <span style="font-size: 0.68rem; font-weight: 800; color: #1565c0; text-transform: uppercase; display: block; margin-bottom: 2px;">Paid Leave (PL)</span>
+            <strong style="font-size: 1.5rem; color: #1565c0; font-weight: 900;">{{ daysPaidLeave }}</strong>
+          </div>
+          <i class="fa-solid fa-umbrella" style="font-size: 1.4rem; color: #1565c0; opacity: 0.8;"></i>
+        </div>
+        <!-- ABSENT -->
+        <div style="background-color: #ffe3e3; border: 1.5px solid #ffc9c9; border-radius: 8px; padding: 0.75rem 1rem; text-align: left; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <span style="font-size: 0.68rem; font-weight: 800; color: #c92a2a; text-transform: uppercase; display: block; margin-bottom: 2px;">Absent (A)</span>
+            <strong style="font-size: 1.5rem; color: #c92a2a; font-weight: 900;">{{ daysAbsent }}</strong>
+          </div>
+          <i class="fa-regular fa-circle-xmark" style="font-size: 1.4rem; color: #c92a2a; opacity: 0.8;"></i>
+        </div>
+        <!-- UNMARKED -->
+        <div style="background-color: #f1f3f5; border: 1.5px solid #dee2e6; border-radius: 8px; padding: 0.75rem 1rem; text-align: left; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <span style="font-size: 0.68rem; font-weight: 800; color: #495057; text-transform: uppercase; display: block; margin-bottom: 2px;">Unmarked</span>
+            <strong style="font-size: 1.5rem; color: #495057; font-weight: 900;">{{ daysUnmarked }}</strong>
+          </div>
+          <i class="fa-regular fa-circle-question" style="font-size: 1.4rem; color: #495057; opacity: 0.8;"></i>
+        </div>
+      </div>
+
+      <!-- Tip info instructions banner -->
+      <div style="background-color: #fff9db; border: 1.5px solid #ffe066; border-radius: 8px; padding: 8px 12px; font-size: 0.8rem; font-weight: 600; color: #495057; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 6px;">
+        <span>💡</span> Click on any date box below to mark, edit or update attendance status.
+      </div>
+
+      <!-- Loading Attendance Roster -->
+      <div style="text-align: center; padding: 4rem 0;" *ngIf="loadingAttendance">
+        <span class="btn-spinner" style="border-top-color: #0059ff; display: inline-block; width: 35px; height: 35px; border-width: 4px;"></span>
+        <p style="margin-top: 1rem; color: #64748b; font-weight: 600; font-size: 0.85rem;">Loading calendar records...</p>
+      </div>
+
+      <!-- Calendar Days Grid -->
+      <div *ngIf="!loadingAttendance">
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 10px;">
+          <div 
+            *ngFor="let dayObj of calendarDays" 
+            (click)="openMarkAttendance(dayObj)"
+            style="border-radius: 8px; padding: 10px 8px; text-align: center; border: 1.5px solid #dee2e6; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; background-color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 74px; box-sizing: border-box;"
+            [style.backgroundColor]="dayObj.record ? (dayObj.record.status === 'P' ? '#e6f4ea' : dayObj.record.status === 'HD' ? '#fffde7' : dayObj.record.status === 'PL' ? '#e3f2fd' : '#ffe3e3') : '#ffffff'"
+            [style.borderColor]="dayObj.record ? (dayObj.record.status === 'P' ? '#c3fae8' : dayObj.record.status === 'HD' ? '#ffe066' : dayObj.record.status === 'PL' ? '#bbdefb' : '#ffc9c9') : '#dee2e6'"
+            onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 10px rgba(0,0,0,0.04)';"
+            onmouseout="this.style.transform='none'; this.style.boxShadow='none';"
+          >
+            <div style="font-weight: 800; font-size: 0.95rem; color: #000000; margin-bottom: 2px;">{{ dayObj.day }}</div>
+            <div style="font-size: 0.65rem; color: #868e96; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">
+              {{ months[selectedMonth - 1].name.slice(0, 3) }}
+            </div>
+            
+            <!-- Badge at bottom of square date box -->
+            <div style="width: 100%;">
+              <span 
+                *ngIf="dayObj.record" 
+                style="font-size: 0.65rem; font-weight: 900; padding: 1px 6px; border-radius: 3px; display: inline-block; text-align: center; min-width: 20px;"
+                [style.backgroundColor]="dayObj.record.status === 'P' ? '#137333' : dayObj.record.status === 'HD' ? '#ffb300' : dayObj.record.status === 'PL' ? '#1565c0' : '#c92a2a'"
+                [style.color]="'#ffffff'"
+              >
+                {{ dayObj.record.status }}
+              </span>
+              <span *ngIf="!dayObj.record" style="font-size: 0.65rem; font-weight: 800; color: #adb5bd; border: 1px dashed #ced4da; padding: 1px 6px; border-radius: 3px; display: inline-block; min-width: 20px;">
+                —
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+
+  </div>
+
+  <!-- Loading State -->
+  <div style="background: white; border-radius: 20px; padding: 5rem 0; border: 1.5px solid #dee2e6; text-align: center;" *ngIf="loading">
+    <span class="btn-spinner" style="border-top-color: #0059ff; display: inline-block; width: 45px; height: 45px; border-width: 4px;"></span>
+    <p style="margin-top: 1.5rem; color: #64748b; font-weight: 600; font-size: 1.05rem;">Loading employee details...</p>
+  </div>
+
+</div>
+
+<!-- Edit Staff Details Modal Overlay -->
+<div class="modal-overlay" *ngIf="showEditStaffModal" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.55); display: flex; justify-content: center; align-items: center; z-index: 1100;">
+  <div class="modal-sheet" style="background: white; border-radius: 20px; width: 100%; max-width: 500px; padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #dee2e6; padding-bottom: 1rem;">
+      <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #1e293b;">✏️ Edit Employee Details</h3>
+      <button style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #868e96;" (click)="closeEditStaffModal()">&times;</button>
+    </div>
+
+    <form (ngSubmit)="onSubmitStaffEdit()">
+      
+      <!-- Staff Name -->
+      <div class="form-group" style="margin-bottom: 1.25rem; text-align: left; display: flex; flex-direction: column; gap: 0.4rem;">
+        <label style="font-weight: 700; font-size: 0.9rem; color: #495057;">Employee Name *</label>
+        <input 
+          type="text" 
+          [(ngModel)]="editStaffName" 
+          name="editStaffName" 
+          required 
+          style="height: 44px; border-radius: 8px; border: 1.5px solid #dee2e6; padding: 0 12px; font-weight: 600; font-size: 0.95rem; width: 100%; box-sizing: border-box;"
+        />
+      </div>
+
+      <!-- Mobile Number -->
+      <div class="form-group" style="margin-bottom: 1.25rem; text-align: left; display: flex; flex-direction: column; gap: 0.4rem;">
+        <label style="font-weight: 700; font-size: 0.9rem; color: #495057;">Mobile Number *</label>
+        <input 
+          type="text" 
+          [(ngModel)]="editStaffMobile" 
+          name="editStaffMobile" 
+          required 
+          style="height: 44px; border-radius: 8px; border: 1.5px solid #dee2e6; padding: 0 12px; font-weight: 600; font-size: 0.95rem; width: 100%; box-sizing: border-box;"
+        />
+      </div>
+
+      <!-- Address -->
+      <div class="form-group" style="margin-bottom: 1.25rem; text-align: left; display: flex; flex-direction: column; gap: 0.4rem;">
+        <label style="font-weight: 700; font-size: 0.9rem; color: #495057;">Address *</label>
+        <input 
+          type="text" 
+          [(ngModel)]="editStaffAddress" 
+          name="editStaffAddress" 
+          required 
+          style="height: 44px; border-radius: 8px; border: 1.5px solid #dee2e6; padding: 0 12px; font-weight: 600; font-size: 0.95rem; width: 100%; box-sizing: border-box;"
+        />
+      </div>
+
+      <!-- Monthly Salary -->
+      <div class="form-group" style="margin-bottom: 2rem; text-align: left; display: flex; flex-direction: column; gap: 0.4rem;">
+        <label style="font-weight: 700; font-size: 0.9rem; color: #495057;">Monthly Salary (₹) *</label>
+        <input 
+          type="number" 
+          [(ngModel)]="editStaffSalary" 
+          name="editStaffSalary" 
+          required 
+          style="height: 44px; border-radius: 8px; border: 1.5px solid #dee2e6; padding: 0 12px; font-weight: 600; font-size: 0.95rem; width: 100%; box-sizing: border-box;"
+        />
+      </div>
+
+      <!-- Actions -->
+      <div style="display: flex; gap: 1rem; justify-content: flex-end; border-top: 1px solid #dee2e6; padding-top: 1.25rem;">
+        <button 
+          type="button" 
+          style="height: 44px; border-radius: 8px; border: none; padding: 0 20px; font-weight: 700; cursor: pointer; background-color: #0059ff; color: white;" 
+          (click)="closeEditStaffModal()"
+        >
+          Cancel
+        </button>
+        <button 
+          type="submit" 
+          [disabled]="submittingStaffEdit"
+          style="background-color: #ff6600; color: white; border: none; height: 44px; padding: 0 25px; border-radius: 8px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; width: auto !important; margin: 0 !important;"
+        >
+          <span *ngIf="!submittingStaffEdit">Save Changes</span>
+          <span *ngIf="submittingStaffEdit" class="btn-spinner"></span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Mark/Edit Attendance Modal Overlay -->
+<div class="modal-overlay" *ngIf="showAttendanceModal" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.55); display: flex; justify-content: center; align-items: center; z-index: 1100;">
+  <div class="modal-sheet" style="background: white; border-radius: 20px; width: 100%; max-width: 440px; padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #dee2e6; padding-bottom: 1rem;">
+      <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #1e293b;">
+        {{ isExistingRecord ? '✏️ Edit Attendance' : '📅 Mark Daily Attendance' }}
+      </h3>
+      <button style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #868e96;" (click)="closeAttendanceModal()">&times;</button>
+    </div>
+
+    <form (ngSubmit)="onSubmitAttendance()">
+      
+      <div style="text-align: left; margin-bottom: 1.5rem; font-size: 1rem; color: #334155;">
+        Date: <strong>{{ formatShortDate(attendanceDate) }}</strong>
+      </div>
+
+      <!-- Attendance status selector -->
+      <div class="form-group" style="margin-bottom: 2rem; text-align: left; display: flex; flex-direction: column; gap: 0.4rem;">
+        <label style="font-weight: 700; font-size: 0.9rem; color: #495057;">Select Status</label>
+        <select 
+          [(ngModel)]="attendanceStatus" 
+          name="attendanceStatus"
+          style="height: 44px; border-radius: 8px; border: 1.5px solid #dee2e6; padding: 0 10px; font-weight: 600; font-size: 0.95rem; background-color: white;"
+        >
+          <option value="P">Present (P) - Full Day Pay</option>
+          <option value="HD">Half Day (HD) - Half Day Pay</option>
+          <option value="PL">Paid Leave (PL) - Full Day Pay</option>
+          <option value="A">Absent (A) - Zero Pay</option>
+        </select>
+      </div>
+
+      <!-- Actions -->
+      <div style="display: flex; gap: 1rem; justify-content: flex-end; border-top: 1px solid #dee2e6; padding-top: 1.25rem;">
+        <button 
+          type="button" 
+          style="height: 44px; border-radius: 8px; border: none; padding: 0 20px; font-weight: 700; cursor: pointer; background-color: #0059ff; color: white;" 
+          (click)="closeAttendanceModal()"
+        >
+          Cancel
+        </button>
+        <button 
+          type="submit" 
+          [disabled]="submittingAttendance"
+          style="background-color: #ff6600; color: white; border: none; height: 44px; padding: 0 25px; border-radius: 8px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; width: auto !important; margin: 0 !important;"
+        >
+          <span *ngIf="!submittingAttendance">{{ isExistingRecord ? 'Update Record' : 'Save Record' }}</span>
+          <span *ngIf="submittingAttendance" class="btn-spinner"></span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

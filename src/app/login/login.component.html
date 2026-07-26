@@ -1,0 +1,75 @@
+<div class="login-wrapper">
+  <div class="brand-panel">
+    <div class="brand-logo">
+      <span class="vyapar">Vyapar</span><span class="setu">Setu</span>
+    </div>
+    <h2 class="brand-heading">India's No.1 Business Hub</h2>
+
+    
+    <!-- <div class="brand-features">
+      <div class="feature-item">
+      
+        <div>
+          <h4>Real-time Synchronization</h4>
+          <p>Instant updates between your mobile and desktop app.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        
+        <div>
+          <h4>Secured Transactions</h4>
+          <p>End-to-end encrypted ledger & invoicing logs.</p>
+        </div>
+      </div>
+    </div> -->
+    
+    <p class="brand-footer">100% Bhartiya Brand   </p>
+  </div>
+  
+  <div class="form-panel">
+    <div class="login-card">
+      <div class="login-header">
+        <h3>Welcome to VyaparSetu</h3>
+        <p>Enter your 10-digit mobile number to proceed</p>
+      </div>
+
+      <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+        <div class="input-group">
+          <!-- <label for="mobile">Mobile Number</label> -->
+          <div class="input-container">
+            <span class="country-prefix">+91</span>
+            <input 
+              type="text" 
+              id="mobile" 
+              name="mobile"
+              [value]="mobileNo"
+              (input)="onMobileChange($event)"
+              maxlength="10"
+              autocomplete="off"
+              required
+              autofocus
+            />
+          </div>
+        </div>
+
+        <div class="error-box" *ngIf="errorMessage">
+          <span></span> {{ errorMessage }}
+        </div>
+
+        <button 
+          type="submit" 
+          class="submit-btn" 
+          [disabled]="mobileNo.length !== 10 || loading"
+        >
+          <span *ngIf="!loading">Continue</span>
+          <span *ngIf="loading" class="btn-spinner"></span>
+        </button>
+      </form>
+
+      <div class="login-footer">
+        By continuing, you agree to our 
+        <a href="#">Terms of Service</a> & <a href="#">Privacy Policy</a>
+      </div>
+    </div>
+  </div>
+</div>
