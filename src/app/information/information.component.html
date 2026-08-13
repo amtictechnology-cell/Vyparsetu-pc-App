@@ -61,6 +61,24 @@
             <span class="category-icon">🚚</span>
             <span class="category-label">Supplier</span>
           </div>
+
+          <div 
+            class="category-card" 
+            [class.active]="category === 'Builder'"
+            (click)="selectCategory('Builder')"
+          >
+            <span class="category-icon">🏗️</span>
+            <span class="category-label">Builder</span>
+          </div>
+
+          <div 
+            class="category-card" 
+            [class.active]="category === 'Printing'"
+            (click)="selectCategory('Printing')"
+          >
+            <span class="category-icon">🖨️</span>
+            <span class="category-label">Printing</span>
+          </div>
         </div>
       </div>
 

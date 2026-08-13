@@ -1,0 +1,112 @@
+<div class="container">
+  <h1 class="page-title">Hotel Room Tracking</h1>
+
+  <!-- New Booking Form for Testing Validations -->
+  <div class="card booking-check">
+    <h2 class="card-title">New Booking Availability Check</h2>
+    <form (submit)="handleNewBooking($event)" class="booking-form">
+      <div class="form-group">
+        <label>Enter Room Number (e.g. 101 or 101, 102)</label>
+        <input
+          type="text"
+          [(ngModel)]="bookingRoomNumber"
+          name="bookingRoomNumber"
+          placeholder="Room Number"
+          class="form-input"
+        />
+      </div>
+      <button type="submit" class="btn btn-primary">Check Availability</button>
+    </form>
+    
+    <div *ngIf="bookingError" class="alert alert-error">
+      <span class="icon">⚠️</span> {{ bookingError }}
+    </div>
+    <div *ngIf="bookingSuccess" class="alert alert-success">
+      <span class="icon">✅</span> {{ bookingSuccess }}
+    </div>
+  </div>
+
+  <!-- Track Rooms Section -->
+  <h2 class="section-title">Track Current Rooms</h2>
+  
+  <div *ngIf="loading" class="loading-state">
+    <p>Loading rooms data...</p>
+  </div>
+  
+  <div *ngIf="!loading" class="rooms-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 1rem;">
+    <div class="card room-tracker" [class.booked]="room.status === 'BOOKED'" *ngFor="let room of rooms">
+      <div class="room-header">
+        <div>
+          <h3 class="room-title">Room {{ room.roomNumber }}</h3>
+          <p class="customer-name" *ngIf="room.customerName">Customer: {{ room.customerName }}</p>
+        </div>
+        
+        <div class="room-actions">
+          <button 
+            *ngIf="room.status === 'BOOKED'" 
+            (click)="handleAction(room.roomNumber, 'BOOKED')"
+            class="btn btn-danger"
+          >
+            Process Checkout
+          </button>
+          
+          <span 
+            *ngIf="room.status === 'CHECKOUT_COMPLETE'" 
+            class="badge badge-processing"
+          >
+            Processing...
+          </span>
+          
+          <button 
+            *ngIf="room.status === 'UNDER_CLEANING'" 
+            (click)="handleAction(room.roomNumber, 'UNDER_CLEANING')"
+            class="btn btn-warning"
+          >
+            Mark as Cleaned
+          </button>
+          
+          <span 
+            *ngIf="room.status === 'AVAILABLE'" 
+            class="badge badge-success"
+          >
+            Ready for Booking
+          </span>
+        </div>
+      </div>
+
+      <!-- Progress Bar with Animation -->
+      <div class="progress-container">
+        <div class="progress-bar-wrapper">
+          <!-- Background Bar -->
+          <div class="progress-bar-bg"></div>
+          
+          <!-- Animated Progress Bar -->
+          <div 
+            class="progress-bar-fill"
+            [style.width.%]="(getStepIndex(room.status) / (trackingSteps.length - 1)) * 100"
+          ></div>
+          
+          <!-- Steps -->
+          <div class="step" *ngFor="let step of trackingSteps; let i = index">
+            <div 
+              class="step-icon"
+              [class.completed]="i <= getStepIndex(room.status)"
+              [class.active]="i === getStepIndex(room.status)"
+            >
+              <ng-container *ngIf="i <= getStepIndex(room.status); else stepNumber">
+                <svg class="check-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+              </ng-container>
+              <ng-template #stepNumber>{{ i + 1 }}</ng-template>
+            </div>
+            <span 
+              class="step-label"
+              [class.completed]="i <= getStepIndex(room.status)"
+            >
+              {{ step.label }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

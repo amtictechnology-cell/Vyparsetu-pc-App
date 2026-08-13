@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { TrackRoom } from '../../components/track-room/track-room';
 
 @Component({
   selector: 'app-rooms',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TrackRoom],
   templateUrl: './rooms.html',
 })
 export class RoomsComponent implements OnInit {
@@ -22,6 +23,8 @@ export class RoomsComponent implements OnInit {
   showDeleteModal: boolean = false;
   customerToDeleteId: string = '';
   deletingCustomer: boolean = false;
+
+  showTrackRoomModal: boolean = false;
 
   stayCustomerName: string = '';
   stayCustomerMobile: string = '';
@@ -40,6 +43,16 @@ export class RoomsComponent implements OnInit {
   ngOnInit(): void {
     this.backendUrl = this.authService.getApiUrl();
     this.fetchStayCustomers();
+  }
+
+  openTrackRoomModal(): void {
+    this.showTrackRoomModal = true;
+    this.cdr.detectChanges();
+  }
+
+  closeTrackRoomModal(): void {
+    this.showTrackRoomModal = false;
+    this.cdr.detectChanges();
   }
 
   fetchStayCustomers(): void {

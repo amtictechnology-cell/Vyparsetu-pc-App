@@ -16,7 +16,14 @@
                 [(ngModel)]="stayCustomerSearchQuery"
                 style="height: 44px; width: 280px; border-radius: 8px; border: 1.5px solid #dee2e6; padding: 0 15px; font-size: 0.9rem; font-weight: 600; box-sizing: border-box;"
               />
-              
+              <!-- Track Rooms Button -->
+              <button 
+                style="background-color: #0059ff; color: white; border: none; height: 44px; padding: 0 20px; border-radius: 8px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; box-shadow: 0 4px 6px -1px rgba(0,89,255,0.2);"
+                (click)="openTrackRoomModal()"
+              >
+                <span>🏨</span> Track Rooms
+              </button>
+
               <!-- Add Button -->
               <button 
                 style="background-color: #ff6600; color: white; border: none; height: 44px; padding: 0 20px; border-radius: 8px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; box-shadow: 0 4px 6px -1px rgba(255,102,0,0.2);"
@@ -262,3 +269,14 @@
     color: #94a3b8 !important;
   }
 </style>
+
+<!-- Track Room Modal Overlay -->
+<div class="modal-overlay" *ngIf="showTrackRoomModal" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.55); display: flex; justify-content: center; align-items: center; z-index: 1050; padding: 1rem; box-sizing: border-box;">
+  <div class="modal-sheet" style="background: white; border-radius: 20px; width: 100%; max-width: 900px; padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto; position: relative; animation: popIn 0.3s ease-out;">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #dee2e6; padding-bottom: 1rem; margin-bottom: 1rem;">
+      <h3 style="margin: 0; font-size: 1.35rem; font-weight: 800; color: #1e293b;">Live Room Tracking</h3>
+      <button style="background: #f1f5f9; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;" (click)="closeTrackRoomModal()">&times;</button>
+    </div>
+    <app-track-room></app-track-room>
+  </div>
+</div>

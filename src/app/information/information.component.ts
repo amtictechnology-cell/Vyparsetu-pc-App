@@ -77,6 +77,8 @@ export class InformationComponent implements OnInit {
           const finalCategory = (res.user.businessCategory || apiCategory).toLowerCase();
           if (finalCategory === 'shop') {
             this.router.navigate(['/shop']);
+          } else if (finalCategory === 'builder') {
+            this.router.navigate(['/builder']);
           } else if (finalCategory === 'supplier' || finalCategory === 'suppliers') {
             this.router.navigate(['/supplier']);
           } else {

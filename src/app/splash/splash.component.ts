@@ -34,6 +34,8 @@ export class SplashComponent implements OnInit {
           const category = (user.businessCategory || '').toLowerCase();
           if (category === 'shop') {
             this.router.navigate(['/shop']);
+          } else if (category === 'builder') {
+            this.router.navigate(['/builder']);
           } else if (category === 'supplier' || category === 'suppliers') {
             this.router.navigate(['/supplier']);
           } else if (category) {

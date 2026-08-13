@@ -129,6 +129,8 @@ export class VerifyOtpComponent implements OnInit, AfterViewInit {
                 const category = (user.businessCategory || '').toLowerCase();
                 if (category === 'shop') {
                   this.router.navigate(['/shop']);
+                } else if (category === 'builder') {
+                  this.router.navigate(['/builder']);
                 } else if (category === 'supplier' || category === 'suppliers') {
                   this.isSupplierRestricted = true;
                   this.authService.logout();
@@ -142,6 +144,7 @@ export class VerifyOtpComponent implements OnInit, AfterViewInit {
                 if (vUser && vUser.businessCategory) {
                   const cat = vUser.businessCategory.toLowerCase();
                   if (cat === 'shop') this.router.navigate(['/shop']);
+                  else if (cat === 'builder') this.router.navigate(['/builder']);
                   else if (cat === 'supplier' || cat === 'suppliers') {
                     this.isSupplierRestricted = true;
                     this.authService.logout();
@@ -159,6 +162,7 @@ export class VerifyOtpComponent implements OnInit, AfterViewInit {
               if (vUser && vUser.businessCategory) {
                 const cat = vUser.businessCategory.toLowerCase();
                 if (cat === 'shop') this.router.navigate(['/shop']);
+                else if (cat === 'builder') this.router.navigate(['/builder']);
                 else if (cat === 'supplier' || cat === 'suppliers') {
                   this.isSupplierRestricted = true;
                   this.authService.logout();

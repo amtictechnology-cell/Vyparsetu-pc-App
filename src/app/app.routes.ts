@@ -5,6 +5,11 @@ import { VerifyOtpComponent } from './verify-otp/verify-otp.component';
 import { InformationComponent } from './information/information.component';
 import { HomeDashboardComponent } from './dashboard/home-dashboard.component';
 import { ShopDashboardComponent } from './dashboard/shop-dashboard.component';
+import { BuilderDashboardComponent } from './dashboard/builder-dashboard.component';
+import { BuilderInsightsComponent } from './dashboard/builder/builder-insights.component';
+import { BuilderClientsComponent } from './dashboard/builder/builder-clients.component';
+import { BuilderRateListComponent } from './dashboard/builder/builder-ratelist.component';
+import { BuilderClientProfileComponent } from './dashboard/builder/builder-client-profile.component';
 
 import { CustomerProfileComponent } from './dashboard/customer-profile.component';
 import { DriverProfileComponent } from './dashboard/driver-profile.component';
@@ -41,6 +46,26 @@ export const routes: Routes = [
       { path: 'profile', component: ProfileComponent },
     ]
   },
+  { 
+    path: 'builder', 
+    component: BuilderDashboardComponent, 
+    canActivate: [authGuard],
+    children: [
+      {
+        path: 'mason-profile',
+        loadComponent: () => import('./dashboard/builder/builder-mason-profile.component').then(m => m.BuilderMasonProfileComponent)
+      },
+      {
+        path: 'masons',
+        loadComponent: () => import('./dashboard/builder/builder-mason.component').then(m => m.BuilderMasonComponent)
+      },
+      { path: '', redirectTo: 'profile', pathMatch: 'full' },
+      { path: 'profile', component: ProfileComponent },
+      { path: 'clients', component: BuilderClientsComponent },
+      { path: 'ratelist', component: BuilderRateListComponent }
+    ]
+  },
+  { path: 'builder/client-profile', component: BuilderClientProfileComponent, canActivate: [authGuard] },
   { path: 'shop', component: ShopDashboardComponent, canActivate: [authGuard] },
   { path: 'customer-profile', component: CustomerProfileComponent, canActivate: [authGuard] },
   { path: 'driver-profile', component: DriverProfileComponent, canActivate: [authGuard] },

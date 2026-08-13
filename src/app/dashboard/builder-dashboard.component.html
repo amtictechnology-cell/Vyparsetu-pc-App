@@ -1,0 +1,91 @@
+<div class="dashboard-layout" *ngIf="!loading">
+  <!-- Left Column: Personal Profile Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand" style="margin-bottom: 2rem; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 0 10px;">
+      <div style="font-size: 2.0rem; font-weight: 700; letter-spacing: 0.5px; display: flex; align-items: center; gap: 2px;">
+        <span class="vyapar" style="color: #0059ff; font-weight: 850; font-size:2.5rem ">Vyapar</span><span class="setu" style="color: #ff6600; font-weight: 850; font-size:2.5rem ">Setu</span>
+      </div>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="sidebar-nav">
+      <ul>
+        <li routerLink="/builder/clients" routerLinkActive="active">
+          <span class="nav-icon"><i class="fa-solid fa-users"></i></span>
+          <span class="nav-text">Clients</span>
+        </li>
+        <li routerLink="/builder/masons" routerLinkActive="active">
+          <span class="nav-icon"><i class="fa-solid fa-helmet-safety"></i></span>
+          <span class="nav-text">Mason & Labour</span>
+        </li>
+        <li routerLink="/builder/ratelist" routerLinkActive="active">
+          <span class="nav-icon"><i class="fa-solid fa-clipboard-list"></i></span>
+          <span class="nav-text">Rate List</span>
+        </li>
+        <li routerLink="/builder/profile" routerLinkActive="active">
+          <span class="nav-icon"><i class="fa-solid fa-circle-user"></i></span>
+          <span class="nav-text">My Profile</span>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Bottom Actions -->
+    <div class="sidebar-footer">
+      <button class="logout-sidebar-btn" (click)="showLogoutModal = true">
+        <span><i class="fa-solid fa-arrow-right-from-bracket"></i></span> Logout Account
+      </button>
+    </div>
+  </aside>
+
+  <!-- Right Column: Operations Container -->
+  <main class="main-content-area">
+    <!-- Top Bar -->
+    <header class="content-header">
+      <div class="header-info">
+        <span class="date-tag" style="border: none; background: #f9f4f1; color: #475569; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 700; font-size: 0.85rem;"> Builder Dashboard</span>
+      </div>
+      <div class="user-top-profile" style="display: flex; align-items: center; gap: 12px;">
+        <div style="text-align: right;">
+          <div style="font-weight: 700; color: #343a40; font-size: 0.95rem;">{{ user?.name }}</div>
+          <div style="color: #868e96; font-size: 0.8rem; font-weight: 600;">{{ user?.businessName || 'Builder' }}</div>
+        </div>
+        <div class="profile-avatar" style="width: 42px; height: 42px; background: #000b2b; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem;">
+          {{ user?.name ? user.name.charAt(0).toUpperCase() : 'B' }}
+        </div>
+      </div>
+    </header>
+
+    <!-- Dynamic Content Area -->
+    <div class="scrollable-content">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+</div>
+
+<!-- Loader -->
+<div class="loading-container" *ngIf="loading">
+  <div class="spinner"></div>
+  <p>Loading your builder dashboard...</p>
+</div>
+
+<app-plan-modal [user]="user" (subscribed)="onSubscribed()"></app-plan-modal>
+
+<!-- Logout Confirmation Modal -->
+<div class="modal-backdrop" *ngIf="showLogoutModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 2000;">
+  <div style="background: white; width: 380px; border-radius: 12px; padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+    <div style="width: 60px; height: 60px; background: #fff4ed; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #ff6600; margin: 0 auto 1.5rem auto;">
+      <i class="fa-solid fa-arrow-right-from-bracket"></i>
+    </div>
+    <h3 style="margin: 0 0 10px 0; color: #343a40; font-size: 1.3rem;">Confirm Logout</h3>
+    <p style="color: #868e96; margin-bottom: 2rem;">Are you sure you want to logout from your account?</p>
+    
+    <div style="display: flex; gap: 10px;">
+      <button (click)="showLogoutModal = false" style="flex: 1; background: white; color: #495057; border: 1px solid #ced4da; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s;">
+        Cancel
+      </button>
+      <button (click)="logout()" style="flex: 1; background: #ff6600; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s;">
+        Yes, Logout
+      </button>
+    </div>
+  </div>
+</div>
