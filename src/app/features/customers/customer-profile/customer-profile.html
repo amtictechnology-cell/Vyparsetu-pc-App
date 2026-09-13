@@ -1,0 +1,270 @@
+<div class="profile-container">
+  <div class="header-actions">
+    <div class="header-left">
+      <button class="btn btn-outline-secondary" (click)="goBack()">← Back to Customers</button>
+      <h2>Customer Profile</h2>
+    </div>
+    <div class="header-right" *ngIf="customer">
+      <button class="btn btn-primary btn-create-bill-top" (click)="openCreateBill()">
+        <i class="fa-solid fa-receipt me-1"></i> Create Bill
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-state">
+    <p>Loading profile...</p>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">
+    {{ error }}
+  </div>
+
+  <div *ngIf="customer && !isLoading" class="profile-content">
+    
+    <!-- Left Column: Customer Information -->
+    <div class="info-card">
+      <div class="card-header">
+        <div class="avatar">
+          <i class="fa-solid fa-user"></i>
+        </div>
+        <div class="title-info">
+          <h3>{{ customer.name }}</h3>
+          <span class="badge status-active">Active</span>
+        </div>
+      </div>
+      
+      <div class="card-body">
+        <div class="info-row">
+          <span class="label">Mobile Number</span>
+          <span class="value"><i class="fa-solid fa-phone"></i> {{ customer.mobile }}</span>
+        </div>
+        <div class="info-row" *ngIf="customer.idType">
+          <span class="label">ID Type</span>
+          <span class="value">
+            <span class="id-type-badge">{{ customer.idType }}</span>
+          </span>
+        </div>
+        <div class="info-row" *ngIf="customer.idNumber">
+          <span class="label">ID Number</span>
+          <span class="value monospace">{{ customer.idNumber }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Address</span>
+          <span class="value">{{ customer.address || 'Not provided' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Member Since</span>
+          <span class="value">{{ customer.createdAt | date:'mediumDate' }}</span>
+        </div>
+      </div>
+      
+      <div class="card-actions">
+        <button class="btn btn-primary btn-full mb-2" (click)="openCreateBill()">
+          <i class="fa-solid fa-receipt me-1"></i> Create Food Bill
+        </button>
+        <button class="btn btn-outline-primary btn-full" (click)="openBookingForm()">
+          <i class="fa-solid fa-bed me-1"></i> Book Room
+        </button>
+      </div>
+    </div>
+
+    <!-- Right Column: Stays and History -->
+    <div class="stay-history-container">
+      
+      <!-- Current Stay Panel -->
+      <div class="history-card current-stay">
+        <div class="card-header-simple d-flex justify-content-between align-items-center">
+          <h4>Current Stay</h4>
+          <button *ngIf="!activeStay" class="btn btn-sm btn-outline-primary" (click)="openBookingForm()">+ New Booking</button>
+        </div>
+        
+        <div class="card-body empty-state" *ngIf="!activeStay && !isLoadingBookings">
+          <p>No active stay currently.</p>
+        </div>
+
+        <div class="card-body" *ngIf="activeStay">
+          <div class="stay-header mb-3">
+            <span class="badge" [ngClass]="'status-' + activeStay.status.toLowerCase()">{{ activeStay.status }}</span>
+            <span class="booking-no">{{ activeStay.bookingNumber }}</span>
+          </div>
+          
+          <div class="stay-details-grid">
+            <div class="detail-item">
+              <span class="label">Room</span>
+              <span class="value font-weight-bold">{{ activeStay.roomNumber }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Check-in</span>
+              <span class="value">{{ activeStay.checkInDate | date:'mediumDate' }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Check-out</span>
+              <span class="value">{{ activeStay.checkOutDate | date:'mediumDate' }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Total Members</span>
+              <span class="value font-weight-bold">{{ activeStay.totalMembers || (activeStay.adults + activeStay.children) || 1 }}</span>
+            </div>
+          </div>
+
+          <!-- Accompanying Members / Guests with ID Numbers -->
+          <div class="stay-members-box mt-3 pt-3 border-top" *ngIf="activeStay.guests && activeStay.guests.length > 0">
+            <div class="label mb-2">
+              <i class="fa-solid fa-users me-1 text-primary"></i> Members (Sath Me Kon Tha) — {{ activeStay.guests.length }}
+            </div>
+            <div class="stay-guests-list">
+              <div class="stay-guest-card" *ngFor="let g of activeStay.guests; let idx = index">
+                <span class="stay-guest-idx">{{ idx + 1 }}</span>
+                <div class="stay-guest-details">
+                  <div class="stay-guest-name">{{ g.name }}</div>
+                  <div class="stay-guest-id" *ngIf="g.idNumber"><i class="fa-solid fa-id-card"></i> ID: {{ g.idNumber }}</div>
+                  <div class="stay-guest-id text-muted" *ngIf="!g.idNumber">No ID entered</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="stay-financials mt-3 pt-3 border-top">
+            <div class="detail-item">
+              <span class="label">Total Amount</span>
+              <span class="value">₹{{ activeStay.finalAmount }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Paid</span>
+              <span class="value text-success">₹{{ activeStay.paidAmount }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Remaining</span>
+              <span class="value text-danger font-weight-bold">₹{{ activeStay.remainingAmount }}</span>
+            </div>
+          </div>
+
+          <div class="stay-actions mt-4 d-flex gap-2">
+            <button class="btn btn-primary flex-1" *ngIf="activeStay.status === 'RESERVED' || activeStay.status === 'CONFIRMED'" (click)="checkIn(activeStay._id)">Check In</button>
+            <button class="btn btn-outline-primary flex-1" *ngIf="activeStay.status === 'CHECKED_IN'" (click)="checkOut(activeStay._id)">Check Out</button>
+            <button class="btn btn-outline-secondary flex-1" *ngIf="activeStay.status !== 'CHECKED_OUT' && activeStay.status !== 'CANCELLED'" (click)="addPayment(activeStay._id)">Add Payment</button>
+          </div>
+        </div>
+        
+        <div class="card-body text-center" *ngIf="isLoadingBookings">
+          <p>Loading stays...</p>
+        </div>
+      </div>
+
+      <!-- Booking History Panel -->
+      <div class="history-card">
+        <div class="card-header-simple">
+          <h4>Booking History</h4>
+        </div>
+        <div class="card-body empty-state" *ngIf="bookingHistory.length === 0 && !isLoadingBookings">
+          <p>No previous bookings found for this customer.</p>
+        </div>
+        <div class="card-body p-0" *ngIf="bookingHistory.length > 0">
+          <table class="table table-sm m-0 history-table">
+            <thead>
+              <tr>
+                <th>Booking No</th>
+                <th>Room</th>
+                <th>Dates</th>
+                <th>Members & IDs (Sath Me Kon Tha)</th>
+                <th>Amount</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let bk of bookingHistory">
+                <td>{{ bk.bookingNumber }}</td>
+                <td>{{ bk.roomNumber }}</td>
+                <td>{{ bk.checkInDate | date:'MMM d' }} - {{ bk.checkOutDate | date:'MMM d' }}</td>
+                <td>
+                  <div *ngIf="bk.guests && bk.guests.length > 0" class="history-guests-col">
+                    <div class="history-guest-tag" *ngFor="let g of bk.guests; let i = index">
+                      <span class="guest-dot">•</span>
+                      <strong class="history-guest-name">{{ g.name }}</strong>
+                      <span class="history-guest-id" *ngIf="g.idNumber"> (ID: {{ g.idNumber }})</span>
+                    </div>
+                  </div>
+                  <div *ngIf="!bk.guests || bk.guests.length === 0" class="text-muted small">
+                    {{ bk.totalMembers || (bk.adults + bk.children) || 1 }} Member(s)
+                  </div>
+                </td>
+                <td>₹{{ bk.finalAmount }}</td>
+                <td><span class="badge" [ngClass]="'status-' + bk.status.toLowerCase()">{{ bk.status }}</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Food Bills History Panel -->
+      <div class="history-card mt-3">
+        <div class="card-header-simple d-flex justify-content-between align-items-center">
+          <h4><i class="fa-solid fa-receipt me-2 text-primary"></i> Food & Dining Bills</h4>
+          <button class="btn btn-sm btn-outline-primary" (click)="openCreateBill()">+ Create Bill</button>
+        </div>
+        <div class="card-body empty-state" *ngIf="customerBills.length === 0 && !isLoadingBills">
+          <p>No food bills found for this customer.</p>
+        </div>
+        <div class="card-body p-0" *ngIf="customerBills.length > 0">
+          <table class="table table-sm m-0 history-table">
+            <thead>
+              <tr>
+                <th>Bill No</th>
+                <th>Items</th>
+                <th>Date & Time</th>
+                <th>Payment</th>
+                <th>Status</th>
+                <th>Amount</th>
+                <th class="text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let bill of customerBills">
+                <td><strong class="text-primary monospace">{{ bill.billNumber }}</strong></td>
+                <td>
+                  <span class="badge bg-light text-dark">{{ bill.items.length }} Item(s)</span>
+                  <div class="text-muted small" style="max-width: 200px;">
+                    <span *ngFor="let it of bill.items; let last = last">{{ it.itemName }} (x{{ it.quantity }}){{ !last ? ', ' : '' }}</span>
+                  </div>
+                </td>
+                <td>{{ bill.createdAt | date:'mediumDate' }} <span class="text-muted small">{{ bill.createdAt | date:'shortTime' }}</span></td>
+                <td><span class="badge status-confirmed">{{ bill.paymentMode }}</span></td>
+                <td><span class="badge status-checked_in">{{ bill.paymentStatus }}</span></td>
+                <td class="font-weight-bold">₹{{ bill.finalAmount }}</td>
+                <td class="text-right">
+                  <div class="d-flex gap-1 justify-content-end">
+                    <button class="btn btn-sm btn-outline-primary" (click)="openEditBill(bill)" title="Edit Bill">
+                      <i class="fa-solid fa-pen-to-square"></i> Edit
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" (click)="deleteBill(bill)" title="Delete Bill">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card-body text-center" *ngIf="isLoadingBills">
+          <p>Loading food bills...</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <app-booking-form 
+    *ngIf="showBookingForm && customer"
+    [customer]="customer"
+    (close)="closeBookingForm()"
+    (bookingCreated)="onBookingCreated($event)">
+  </app-booking-form>
+
+  <app-create-bill 
+    *ngIf="showCreateBillModal && customer"
+    [customer]="customer"
+    [editingBill]="selectedBillForEdit"
+    (close)="closeCreateBill()"
+    (billGenerated)="onBillGenerated($event)">
+  </app-create-bill>
+</div>

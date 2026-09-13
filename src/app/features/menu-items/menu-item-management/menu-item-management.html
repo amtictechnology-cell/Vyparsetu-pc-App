@@ -1,0 +1,349 @@
+<div class="menu-management-container">
+
+  <!-- Header & Actions -->
+  <div class="page-header">
+    <div>
+      <h2>Food Menu & Billing Items</h2>
+      <p class="subtitle">Create and manage menu items for customer orders & billing</p>
+    </div>
+    <div class="header-buttons">
+      <button class="btn btn-outline-primary" (click)="openAddSingleModal()">
+        <i class="fa-solid fa-plus"></i> Add Single Item
+      </button>
+      <button class="btn btn-primary" (click)="openBulkModal()">
+        <i class="fa-solid fa-layer-group"></i> Bulk Add (Up to 10)
+      </button>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-icon total-icon"><i class="fa-solid fa-utensils"></i></div>
+      <div class="metric-info">
+        <span class="metric-label">Total Items</span>
+        <span class="metric-value">{{ counts.total }}</span>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon active-icon"><i class="fa-solid fa-circle-check"></i></div>
+      <div class="metric-info">
+        <span class="metric-label">Active Items</span>
+        <span class="metric-value text-success">{{ counts.active }}</span>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon inactive-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+      <div class="metric-info">
+        <span class="metric-label">Inactive Items</span>
+        <span class="metric-value text-muted">{{ counts.inactive }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success & Global Error Alerts -->
+  <div *ngIf="successMessage" class="alert alert-success">
+    <i class="fa-solid fa-check-circle"></i> {{ successMessage }}
+  </div>
+  <div *ngIf="error" class="alert alert-danger">
+    <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
+  </div>
+
+  <!-- Filters Toolbar -->
+  <div class="filters-bar">
+    <div class="search-wrap">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input 
+        type="text" 
+        class="form-control search-input" 
+        placeholder="Search item name or category..." 
+        (input)="onSearch($event)" />
+    </div>
+
+    <div class="filter-dropdowns">
+      <select class="form-control select-filter" (change)="onCategoryFilterChange($event)">
+        <option value="">All Categories</option>
+        <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+      </select>
+
+      <select class="form-control select-filter" (change)="onStatusFilterChange($event)">
+        <option value="">All Statuses</option>
+        <option value="true">Active Only</option>
+        <option value="false">Inactive Only</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Items Table -->
+  <div class="table-card">
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Item Name</th>
+            <th>Category</th>
+            <th>Unit</th>
+            <th>Price</th>
+            <th>Status</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Loading State -->
+          <tr *ngIf="isLoading">
+            <td colspan="6" class="text-center py-4">
+              <i class="fa-solid fa-spinner fa-spin me-2"></i> Loading menu items...
+            </td>
+          </tr>
+
+          <!-- Empty State -->
+          <tr *ngIf="!isLoading && menuItems.length === 0">
+            <td colspan="6" class="text-center py-4 empty-row">
+              <i class="fa-solid fa-bowl-food empty-icon"></i>
+              <p class="empty-title">No menu items found</p>
+              <p class="empty-desc">Click "Add Single Item" or "Bulk Add" to create your hotel menu items.</p>
+            </td>
+          </tr>
+
+          <!-- Data Rows -->
+          <tr *ngFor="let item of menuItems">
+            <td>
+              <strong class="item-title">{{ item.itemName }}</strong>
+            </td>
+            <td>
+              <span class="category-pill">{{ item.itemCategory }}</span>
+            </td>
+            <td>
+              <span class="unit-text">{{ item.unit }}</span>
+            </td>
+            <td>
+              <strong class="price-text">₹{{ item.itemPrice }}</strong>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="item.isActive ? 'badge-active' : 'badge-inactive'">
+                {{ item.isActive ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+            <td class="text-right">
+              <button class="btn-action btn-edit" title="Edit Item" (click)="openEditModal(item)">
+                <i class="fa-solid fa-pen-to-square"></i> Edit
+              </button>
+
+              <button 
+                class="btn-action"
+                [ngClass]="item.isActive ? 'btn-deactivate' : 'btn-activate'"
+                [title]="item.isActive ? 'Deactivate' : 'Activate'"
+                (click)="onToggleStatus(item)">
+                {{ item.isActive ? 'Deactivate' : 'Activate' }}
+              </button>
+
+              <button class="btn-action btn-delete" title="Delete Item" (click)="onDeleteItem(item)">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Footer -->
+    <div class="table-footer" *ngIf="totalPages > 1">
+      <span class="page-info">Page {{ currentPage }} of {{ totalPages }} ({{ totalCount }} items)</span>
+      <div class="pagination-controls">
+        <button class="btn btn-sm btn-outline-secondary" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">
+          Previous
+        </button>
+        <button class="btn btn-sm btn-outline-secondary" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">
+          Next
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───────────────────────────────────────────────────────────────── -->
+  <!-- MODAL 1: Single Add / Edit Item Modal                            -->
+  <!-- ───────────────────────────────────────────────────────────────── -->
+  <div class="modal-backdrop" *ngIf="showSingleModal">
+    <div class="modal-container single-modal">
+      <div class="modal-header">
+        <h3>{{ isEditing ? 'Edit Menu Item' : 'Add New Menu Item' }}</h3>
+        <button class="close-btn" (click)="closeSingleModal()">×</button>
+      </div>
+
+      <form [formGroup]="singleForm" (ngSubmit)="onSubmitSingle()">
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Item Name *</label>
+            <input type="text" formControlName="itemName" class="form-control" placeholder="e.g. Paneer Butter Masala" />
+            <div class="text-danger" *ngIf="singleForm.get('itemName')?.touched && singleForm.get('itemName')?.invalid">
+              Item name is required (min 2 characters).
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group half-width">
+              <label>Price (₹) *</label>
+              <input type="number" formControlName="itemPrice" class="form-control" min="0" placeholder="e.g. 250" />
+              <div class="text-danger" *ngIf="singleForm.get('itemPrice')?.touched && singleForm.get('itemPrice')?.invalid">
+                Price must be greater than or equal to 0.
+              </div>
+            </div>
+
+            <div class="form-group half-width">
+              <label>Unit *</label>
+              <select formControlName="unit" class="form-control">
+                <option *ngFor="let u of units" [value]="u">{{ u }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Category *</label>
+            <select formControlName="itemCategory" class="form-control">
+              <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+            </select>
+          </div>
+
+          <div class="form-group" *ngIf="isEditing">
+            <label class="checkbox-label">
+              <input type="checkbox" formControlName="isActive" />
+              <span>Item is Active (Available for Billing)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" (click)="closeSingleModal()" [disabled]="isSubmitting">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="isSubmitting || singleForm.invalid">
+            {{ isSubmitting ? 'Saving...' : (isEditing ? 'Save Changes' : 'Add Item') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ───────────────────────────────────────────────────────────────── -->
+  <!-- MODAL 2: Bulk Add Modal (Up to 10 Items with FormArray)          -->
+  <!-- ───────────────────────────────────────────────────────────────── -->
+  <div class="modal-backdrop" *ngIf="showBulkModal">
+    <div class="modal-container bulk-modal">
+      
+      <div class="modal-header">
+        <div class="bulk-header-info">
+          <h3>Bulk Add Food Menu Items</h3>
+          <span class="counter-badge" [class.badge-limit]="bulkItemsArray.length >= 10">
+            Items: {{ bulkItemsArray.length }} / 10
+          </span>
+        </div>
+        <button class="close-btn" (click)="closeBulkModal()">×</button>
+      </div>
+
+      <div class="bulk-hint-banner">
+        <span>Add up to 10 food items at once. Enter item details below and click Save All Items.</span>
+      </div>
+
+      <!-- Limit reached notice -->
+      <div *ngIf="bulkItemsArray.length >= 10" class="alert alert-info">
+        <i class="fa-solid fa-circle-info"></i> Maximum 10 items can be added at once.
+      </div>
+
+      <!-- Bulk errors alert -->
+      <div *ngIf="bulkErrors.length > 0" class="alert alert-danger">
+        <div *ngFor="let err of bulkErrors">{{ err }}</div>
+      </div>
+
+      <form [formGroup]="bulkForm" (ngSubmit)="onSubmitBulk()">
+        <div class="modal-body bulk-modal-body">
+          <div class="bulk-table-container">
+            <table class="bulk-table">
+              <thead>
+                <tr>
+                  <th style="width: 36px;">#</th>
+                  <th>Item Name *</th>
+                  <th style="width: 130px;">Price (₹) *</th>
+                  <th style="width: 160px;">Category *</th>
+                  <th style="width: 120px;">Unit *</th>
+                  <th style="width: 44px;"></th>
+                </tr>
+              </thead>
+              <tbody formArrayName="items">
+                <tr *ngFor="let row of bulkItemsArray.controls; let i = index" [formGroupName]="i">
+                  <td class="row-num">{{ i + 1 }}</td>
+                  <td>
+                    <input 
+                      type="text" 
+                      formControlName="itemName" 
+                      class="form-control form-control-sm" 
+                      placeholder="e.g. Paneer Butter Masala" />
+                    <div class="text-danger-sm" *ngIf="row.get('itemName')?.touched && row.get('itemName')?.invalid">
+                      Required
+                    </div>
+                  </td>
+                  <td>
+                    <input 
+                      type="number" 
+                      formControlName="itemPrice" 
+                      class="form-control form-control-sm" 
+                      min="0" 
+                      placeholder="e.g. 250" />
+                    <div class="text-danger-sm" *ngIf="row.get('itemPrice')?.touched && row.get('itemPrice')?.invalid">
+                      Invalid (>= 0)
+                    </div>
+                  </td>
+                  <td>
+                    <select formControlName="itemCategory" class="form-control form-control-sm">
+                      <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+                    </select>
+                  </td>
+                  <td>
+                    <select formControlName="unit" class="form-control form-control-sm">
+                      <option *ngFor="let u of units" [value]="u">{{ u }}</option>
+                    </select>
+                  </td>
+                  <td class="text-center">
+                    <button 
+                      type="button" 
+                      class="btn-remove-row" 
+                      [disabled]="bulkItemsArray.length <= 1"
+                      title="Remove Row" 
+                      (click)="removeBulkRow(i)">
+                      <i class="fa-solid fa-xmark"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Add Another Item Button -->
+          <div class="bulk-actions-bar">
+            <button 
+              type="button" 
+              class="btn btn-sm btn-outline-primary add-row-btn"
+              [disabled]="bulkItemsArray.length >= 10" 
+              (click)="addBulkRow()">
+              <i class="fa-solid fa-plus"></i> Add Another Item
+            </button>
+            <span class="bulk-count-status">
+              {{ 10 - bulkItemsArray.length }} more item(s) can be added in this batch
+            </span>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" (click)="closeBulkModal()" [disabled]="isSubmitting">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="isSubmitting || bulkForm.invalid">
+            <i *ngIf="isSubmitting" class="fa-solid fa-spinner fa-spin me-1"></i>
+            {{ isSubmitting ? 'Saving All Items...' : 'Save All Items (' + bulkItemsArray.length + ')' }}
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+</div>

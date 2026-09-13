@@ -1,0 +1,64 @@
+<div class="profile-container">
+  <div class="card">
+    <div class="card-header">
+      <h4>My Profile</h4>
+    </div>
+    <div class="card-body">
+      <div *ngIf="loading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading profile...</p>
+      </div>
+
+      <div *ngIf="error" class="error-state">
+        <p>{{ error }}</p>
+      </div>
+
+      <div *ngIf="!loading && !error && profileData" class="profile-details">
+        <div class="profile-avatar">
+          <div class="avatar-circle">
+            {{ profileData.userName ? profileData.userName.charAt(0).toUpperCase() : 'U' }}
+          </div>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-group">
+            <label>Full Name</label>
+            <p>{{ profileData.userName }}</p>
+          </div>
+          <div class="info-group">
+            <label>Email Address</label>
+            <p>{{ profileData.email }}</p>
+          </div>
+          <div class="info-group">
+            <label>Mobile Number</label>
+            <p>{{ profileData.mobileNo }}</p>
+          </div>
+          <div class="info-group">
+            <label>Business / Hotel Name</label>
+            <p>{{ profileData.businessName }}</p>
+          </div>
+          <div class="info-group">
+            <label>User ID</label>
+            <p class="badge">{{ profileData.userId }}</p>
+          </div>
+          <div class="info-group">
+            <label>Role</label>
+            <p style="text-transform: capitalize;">{{ profileData.role }}</p>
+          </div>
+          <div class="info-group">
+            <label>Account Status</label>
+            <p>
+              <span class="status-badge" [class.active]="profileData.status === 'active'">
+                {{ profileData.status }}
+              </span>
+            </p>
+          </div>
+          <div class="info-group">
+            <label>Joined On</label>
+            <p>{{ profileData.createdAt | date:'mediumDate' }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,327 @@
+<div class="dashboard-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <img src="assets/Logo.png" alt="VyparSetu Logo" class="sidebar-logo" />
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul>
+        <li>
+          <a routerLink="/home/profile" routerLinkActive="active">
+            <span class="icon"><i class="fa-solid fa-circle-user"></i></span> Profile
+          </a>
+        </li>
+        <li>
+          <a routerLink="/home/rooms" routerLinkActive="active">
+            <span class="icon"><i class="fa-solid fa-bed"></i></span> Rooms
+          </a>
+        </li>
+        <li>
+          <a routerLink="/home/menu-items" routerLinkActive="active">
+            <span class="icon"><i class="fa-solid fa-utensils"></i></span> Food Menu
+          </a>
+        </li>
+        <li>
+          <a routerLink="/home/billing" routerLinkActive="active">
+            <span class="icon"><i class="fa-solid fa-receipt"></i></span> Food Billing
+          </a>
+        </li>
+        <li>
+          <a routerLink="/home/customers" routerLinkActive="active" [routerLinkActiveOptions]="{exact: false}">
+            <span class="icon"><i class="fa-solid fa-users"></i></span> Customers
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="logout-btn" (click)="openLogoutModal()" title="Log out of your account">
+        <span class="icon"><i class="fa-solid fa-right-from-bracket"></i></span> Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <h3>
+          <span class="greeting-text">{{ greeting }},</span> 
+          <span class="business-text">{{ businessName ? businessName : 'Dashboard' }}</span>
+        </h3>
+      </div>
+
+      <!-- Subscription Days Left Counter / Header Pill -->
+      <div class="topbar-right" *ngIf="subscription() as sub">
+        <div 
+          class="sub-pill" 
+          [class.pill-trial]="sub.status === 'TRIAL'"
+          [class.pill-active]="sub.status === 'ACTIVE'"
+          [class.pill-critical]="sub.daysRemaining <= 2"
+          [class.pill-expired]="sub.isExpired"
+          (click)="openPlansModal()"
+          title="Click to view or upgrade subscription plans">
+          
+          <span class="pill-icon">
+            <i class="fa-solid" [ngClass]="{
+              'fa-gift': sub.status === 'TRIAL' && sub.daysRemaining > 2,
+              'fa-bolt': sub.status === 'ACTIVE' && sub.daysRemaining > 2,
+              'fa-triangle-exclamation': sub.daysRemaining <= 2 && !sub.isExpired,
+              'fa-lock': sub.isExpired
+            }"></i>
+          </span>
+
+          <span class="pill-text">
+            <strong>{{ sub.status === 'TRIAL' ? 'Free Trial' : sub.planName }}:</strong>
+            <span class="days-count" *ngIf="!sub.isExpired">
+              {{ sub.daysRemaining }} {{ sub.daysRemaining === 1 ? 'Day' : 'Days' }} Left
+            </span>
+            <span class="days-count text-danger" *ngIf="sub.isExpired">
+              Expired
+            </span>
+          </span>
+
+          <button type="button" class="btn-topbar-upgrade" (click)="$event.stopPropagation(); openPlansModal()">
+            {{ sub.isExpired ? 'Renew Now' : (sub.daysRemaining <= 2 ? 'Renew' : 'Upgrade') }}
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="content-area">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+
+  <!-- Logout Confirmation Modal -->
+  <div class="modal-backdrop" *ngIf="showLogoutModal" (click)="closeLogoutModal()">
+    <div class="modal-card modal-sm" (click)="$event.stopPropagation()">
+      <div class="modal-icon-bubble">
+        <i class="fa-solid fa-right-from-bracket"></i>
+      </div>
+      <h3 class="modal-title">Confirm Logout</h3>
+      <p class="modal-description">Are you sure you want to log out of your account?</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-modal-cancel" (click)="closeLogoutModal()">
+          No, Cancel
+        </button>
+        <button type="button" class="btn-modal-logout" (click)="confirmLogout()">
+          Yes, Logout
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. FREE TRIAL WELCOME CELEBRATION POPUP -->
+  @if (showWelcomeModal()) {
+    <div class="modal-backdrop" (click)="dismissWelcomeModal()">
+      <div class="modal-card welcome-modal-card" (click)="$event.stopPropagation()">
+        <div class="celebration-badge">
+          <span class="party-icon">🎉</span>
+        </div>
+
+        <h2 class="welcome-title">Congratulations!</h2>
+        <h3 class="welcome-subtitle">Aapka Free Trial Activate Ho Gaya Hai</h3>
+        
+        <p class="welcome-desc">
+          VyparSetu me aapka swagat hai! Aapko milta hai <strong>7 Dino ka Free Trial</strong> jisme sabhi premium features unlocked hain.
+        </p>
+
+        <div class="features-unlocked-box">
+          <div class="feat-item">
+            <span class="check-icon">✓</span>
+            <span>Fast Billing & GST Invoicing</span>
+          </div>
+          <div class="feat-item">
+            <span class="check-icon">✓</span>
+            <span>Room Booking & Check-in / Out</span>
+          </div>
+          <div class="feat-item">
+            <span class="check-icon">✓</span>
+            <span>Food Menu & Restaurant POS</span>
+          </div>
+          <div class="feat-item">
+            <span class="check-icon">✓</span>
+            <span>Customer Ledger & Reports</span>
+          </div>
+        </div>
+
+        <div class="trial-timer-note">
+          <span class="timer-icon">⏳</span>
+          <span>Aapke pas <strong>7 din</strong> bache hain sabhi features bina kisi rukawat ke explore karne ke liye.</span>
+        </div>
+
+        <div class="welcome-btn-wrap">
+          <button type="button" class="btn-start-exploring" (click)="dismissWelcomeModal()">
+            Start Exploring VyparSetu 🚀
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- 2. NON-DISMISSIBLE BLOCKING PAYWALL MODAL (WHEN TIME / TRIAL EXPIRED) -->
+  @if (showExpiredPaywall()) {
+    <div class="modal-backdrop blocking-backdrop">
+      <div class="modal-card paywall-modal-card">
+        <div class="lockout-header">
+          <div class="lock-icon-wrap">
+            <i class="fa-solid fa-lock"></i>
+          </div>
+          <h2>Subscription / Free Trial Expired</h2>
+          <p class="lockout-subtitle">
+            Aapka VyparSetu free trial ya subscription plan poora ho chuka hai. Software ko continue karne ke liye kripya neeche diye gaye plans me se koi ek plan select karein:
+          </p>
+        </div>
+
+        <!-- Payment Messages -->
+        @if (paymentErrorMessage()) {
+          <div class="alert-banner alert-error">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>{{ paymentErrorMessage() }}</span>
+          </div>
+        }
+        @if (paymentStatusMessage()) {
+          <div class="alert-banner alert-success">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>{{ paymentStatusMessage() }}</span>
+          </div>
+        }
+
+        <!-- Plans Grid -->
+        <div class="paywall-plans-grid">
+          @for (plan of availablePlans(); track plan._id) {
+            <div class="plan-tier-card" [class.popular-tier]="plan.durationMonths === 12">
+              @if (plan.durationMonths === 12) {
+                <span class="popular-badge">Best Value</span>
+              }
+
+              <h3 class="tier-name">{{ plan.name }}</h3>
+              @if (plan.description) {
+                <p class="tier-desc">{{ plan.description }}</p>
+              }
+
+              <div class="tier-pricing">
+                <span class="tier-currency">₹</span>
+                <span class="tier-amount">{{ plan.price }}</span>
+                <span class="tier-period">
+                  / {{ plan.isFree ? (plan.trialDays || 7) + ' Days' : (plan.durationMonths + ' Mo') }}
+                </span>
+              </div>
+
+              <ul class="tier-features-list">
+                @if (plan.features && plan.features.length > 0) {
+                  @for (feat of plan.features; track feat) {
+                    <li><span class="feat-check">✓</span> {{ feat }}</li>
+                  }
+                } @else {
+                  <li><span class="feat-check">✓</span> Complete Software Access</li>
+                  <li><span class="feat-check">✓</span> GST Invoicing & Billing</li>
+                  <li><span class="feat-check">✓</span> Stock & Inventory Tracking</li>
+                }
+              </ul>
+
+              <button 
+                type="button" 
+                class="btn-choose-plan"
+                [disabled]="isProcessingPayment()"
+                (click)="choosePlan(plan)">
+                @if (isProcessingPayment()) {
+                  <span>Processing...</span>
+                } @else {
+                  <span>{{ plan.price === 0 ? 'Activate Free Plan' : 'Buy Now & Unlock' }}</span>
+                }
+              </button>
+            </div>
+          }
+        </div>
+
+        <div class="paywall-footer-note">
+          <span>🔒 100% Secure Checkout via Razorpay (UPI, Credit/Debit Cards, NetBanking)</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- 3. GENERAL UPGRADE / RENEW PLANS MODAL (DISMISSIBLE) -->
+  @if (showPlansModal() && !showExpiredPaywall()) {
+    <div class="modal-backdrop" (click)="closePlansModal()">
+      <div class="modal-card paywall-modal-card" (click)="$event.stopPropagation()">
+        <div class="upgrade-modal-top">
+          <div class="modal-titles">
+            <h2>VyparSetu Subscription Plans</h2>
+            <p>Upgrade or renew your plan anytime to keep your business running smoothly</p>
+          </div>
+          <button type="button" class="btn-close-modal" (click)="closePlansModal()">✕</button>
+        </div>
+
+        <!-- Payment Messages -->
+        @if (paymentErrorMessage()) {
+          <div class="alert-banner alert-error">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>{{ paymentErrorMessage() }}</span>
+          </div>
+        }
+        @if (paymentStatusMessage()) {
+          <div class="alert-banner alert-success">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>{{ paymentStatusMessage() }}</span>
+          </div>
+        }
+
+        <!-- Plans Grid -->
+        <div class="paywall-plans-grid">
+          @for (plan of availablePlans(); track plan._id) {
+            <div class="plan-tier-card" [class.popular-tier]="plan.durationMonths === 12">
+              @if (plan.durationMonths === 12) {
+                <span class="popular-badge">Best Value</span>
+              }
+
+              <h3 class="tier-name">{{ plan.name }}</h3>
+              @if (plan.description) {
+                <p class="tier-desc">{{ plan.description }}</p>
+              }
+
+              <div class="tier-pricing">
+                <span class="tier-currency">₹</span>
+                <span class="tier-amount">{{ plan.price }}</span>
+                <span class="tier-period">
+                  / {{ plan.isFree ? (plan.trialDays || 7) + ' Days' : (plan.durationMonths + ' Mo') }}
+                </span>
+              </div>
+
+              <ul class="tier-features-list">
+                @if (plan.features && plan.features.length > 0) {
+                  @for (feat of plan.features; track feat) {
+                    <li><span class="feat-check">✓</span> {{ feat }}</li>
+                  }
+                } @else {
+                  <li><span class="feat-check">✓</span> Complete Software Access</li>
+                  <li><span class="feat-check">✓</span> GST Invoicing & Billing</li>
+                  <li><span class="feat-check">✓</span> Stock & Inventory Tracking</li>
+                }
+              </ul>
+
+              <button 
+                type="button" 
+                class="btn-choose-plan"
+                [disabled]="isProcessingPayment()"
+                (click)="choosePlan(plan)">
+                @if (isProcessingPayment()) {
+                  <span>Processing...</span>
+                } @else {
+                  <span>{{ plan.price === 0 ? 'Activate Plan' : 'Select & Pay' }}</span>
+                }
+              </button>
+            </div>
+          }
+        </div>
+
+        <div class="paywall-footer-note">
+          <span>🔒 100% Secure Checkout via Razorpay (UPI, Credit/Debit Cards, NetBanking)</span>
+        </div>
+      </div>
+    </div>
+  }
+</div>

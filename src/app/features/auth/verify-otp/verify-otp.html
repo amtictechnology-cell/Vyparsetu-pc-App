@@ -1,0 +1,136 @@
+<div class="split-layout">
+  <!-- Left Panel -->
+  <div class="left-panel">
+    <div class="brand-content">
+      <img src="assets/Logo.png" alt="Logo" class="brand-logo" />
+      <h1 class="brand-tagline">Verify Your Identity</h1>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="right-panel">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="icon-bubble">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ff6a00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+        </div>
+        <h2>Enter Verification Code</h2>
+        <p *ngIf="email">
+          We sent a 6-digit code to <strong class="user-email">{{ email }}</strong>
+          <br>
+          <a routerLink="/forgot-password" class="change-link">Change email</a>
+        </p>
+        <p *ngIf="!email">
+          Please enter the 6-digit verification code sent to your email.
+        </p>
+      </div>
+
+      <!-- Email fallback if empty -->
+      <div class="form-group" *ngIf="!email">
+        <label for="fallbackEmail">Your Email</label>
+        <input 
+          type="email" 
+          id="fallbackEmail" 
+          [(ngModel)]="email" 
+          placeholder="e.g. ashish@example.com" 
+        />
+      </div>
+
+      <!-- Mode 1: 6 Individual Segmented Boxes -->
+      <div *ngIf="!singleInputMode" class="otp-inputs-container" (paste)="onPaste($event)">
+        @for (digit of otpDigits; track $index) {
+          <input
+            #otpInput
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            class="otp-digit"
+            [class.filled]="otpDigits[$index].length > 0"
+            [value]="otpDigits[$index]"
+            (focus)="onFocus($event)"
+            (input)="onInput($event, $index)"
+            (keydown)="onKeyDown($event, $index)"
+            [disabled]="loading"
+            autocomplete="one-time-code"
+          />
+        }
+      </div>
+
+      <!-- Mode 2: Single Continuous Input Box -->
+      <div *ngIf="singleInputMode" class="single-input-wrapper">
+        <input 
+          type="text"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          maxlength="6"
+          class="otp-single-box"
+          placeholder="000000"
+          [(ngModel)]="singleOtp"
+          (ngModelChange)="onSingleOtpChange($event)"
+          [disabled]="loading"
+          autocomplete="one-time-code"
+          autofocus
+        />
+      </div>
+
+      <!-- Input Mode Switcher Link -->
+      <div class="mode-toggle-row">
+        <button type="button" class="btn-mode-toggle" (click)="toggleInputMode()">
+          {{ singleInputMode ? 'Switch to 6 separate boxes' : 'Having trouble? Enter as single input' }}
+        </button>
+      </div>
+
+      <!-- Live 10-Minute Countdown Timer -->
+      <div class="timer-row">
+        <span class="timer-label">Code expires in:</span>
+        <span class="timer-countdown" [class.expiring]="expirySeconds < 60">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          {{ formattedExpiry }}
+        </span>
+      </div>
+
+      <!-- Feedback Alerts -->
+      <div class="alert alert-error" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+      <div class="alert alert-success" *ngIf="successMessage">
+        {{ successMessage }}
+      </div>
+
+      <!-- Verify Button -->
+      <button 
+        type="button" 
+        class="btn-primary" 
+        (click)="onVerify()" 
+        [disabled]="!isOtpComplete || loading || expirySeconds <= 0"
+      >
+        <span *ngIf="!loading">Verify & Proceed</span>
+        <span *ngIf="loading">Verifying...</span>
+      </button>
+
+      <!-- Resend Section with 60s Cooldown -->
+      <div class="resend-row">
+        <span>Didn't receive the code?</span>
+        <button 
+          type="button" 
+          class="btn-resend" 
+          (click)="onResendOtp()" 
+          [disabled]="resendCooldown > 0 || resending || loading"
+        >
+          <span *ngIf="resendCooldown > 0">Resend Code ({{ resendCooldown }}s)</span>
+          <span *ngIf="resendCooldown === 0 && !resending">Resend Code</span>
+          <span *ngIf="resending">Sending...</span>
+        </button>
+      </div>
+
+      <div class="auth-footer">
+        <p><a routerLink="/login">Back to Login</a></p>
+      </div>
+    </div>
+  </div>
+</div>

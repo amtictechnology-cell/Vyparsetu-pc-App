@@ -1,0 +1,208 @@
+.split-layout {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Left Panel */
+.left-panel {
+  flex: 1;
+  background-color: rgba(255, 239, 228, 1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: clamp(20px, 5vw, 60px);
+}
+
+.brand-content {
+  text-align: center;
+  max-width: 450px;
+  width: 100%;
+}
+
+.brand-logo {
+  width: 250px; /* Fixed width to guarantee it looks identical on both pages */
+  max-width: 100%;
+  height: auto;
+  margin-bottom: clamp(20px, 3vw, 30px);
+}
+
+.brand-tagline {
+  font-size: clamp(20px, 2.5vw, 28px);
+  font-weight: 500;
+  color: #444;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* Right Panel */
+.right-panel {
+  flex: 1.2; /* slightly larger space for the form on ultra-wides */
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: clamp(20px, 5vw, 60px);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 480px;
+}
+
+.auth-header {
+  margin-bottom: clamp(20px, 4vw, 35px);
+  text-align: center;
+}
+
+.auth-header h2 {
+  color: #333;
+  margin-bottom: 8px;
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 700;
+}
+
+.auth-header p {
+  color: #666;
+  font-size: clamp(14px, 1.5vw, 16px);
+}
+
+.form-group {
+  margin-bottom: clamp(12px, 2vw, 18px);
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #444;
+  font-size: clamp(13px, 1.2vw, 15px);
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: clamp(14px, 1.2vw, 16px);
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  background-color: #f8fafc;
+}
+
+.form-group input:focus {
+  border-color: rgba(255, 106, 0, 1);
+  background-color: white;
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(255, 106, 0, 0.1);
+}
+
+.error-text {
+  color: #e74c3c;
+  font-size: clamp(11px, 1vw, 13px);
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+.forgot-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -4px;
+  margin-bottom: 14px;
+}
+
+.forgot-link {
+  color: rgba(255, 106, 0, 1);
+  font-size: clamp(12px, 1.1vw, 14px);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.forgot-link:hover {
+  color: rgba(230, 95, 0, 1);
+  text-decoration: underline;
+}
+
+.btn-primary {
+  width: 100%;
+  padding: clamp(14px, 1.8vw, 18px);
+  background-color: rgba(255, 106, 0, 1);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: clamp(15px, 1.5vw, 18px);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 10px;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: rgba(230, 95, 0, 1);
+}
+
+.btn-primary:disabled {
+  background-color: #fca5a5;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: clamp(20px, 3vw, 30px);
+  font-size: clamp(13px, 1.2vw, 15px);
+  color: #64748b;
+}
+
+.auth-footer a {
+  color: rgba(255, 106, 0, 1);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.auth-footer a:hover {
+  text-decoration: underline;
+}
+
+.alert {
+  padding: clamp(10px, 1.5vw, 15px);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: clamp(13px, 1.2vw, 15px);
+}
+
+.alert-error {
+  background-color: #fdf2f2;
+  color: #e74c3c;
+  border: 1px solid #fadcdc;
+}
+
+.alert-success {
+  background-color: #fff7ed;
+  color: rgba(255, 106, 0, 1);
+  border: 1px solid rgba(255, 106, 0, 0.2);
+}
+
+/* Responsive for mobile and tablets */
+@media (max-width: 900px) {
+  .split-layout {
+    flex-direction: column;
+  }
+  
+  .left-panel {
+    flex: 0 0 auto;
+    padding: 40px 20px;
+  }
+  
+  .right-panel {
+    flex: 1 0 auto;
+    padding: 30px 20px 50px 20px;
+    align-items: flex-start;
+  }
+
+  .brand-logo {
+    margin-bottom: 20px;
+  }
+}

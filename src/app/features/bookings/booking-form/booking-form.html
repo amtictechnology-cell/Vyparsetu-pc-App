@@ -1,0 +1,297 @@
+<!-- Wizard Modal Overlay -->
+<div class="wizard-overlay">
+  <div class="wizard-container">
+
+    <!-- Header + Step Indicator -->
+    <div class="wizard-header">
+      <div class="wizard-title">
+        <h3>New Booking — {{ displayCustomerName }}</h3>
+      </div>
+      <button class="close-btn" (click)="onCancel()">×</button>
+    </div>
+
+    <!-- Step Progress Bar -->
+    <div class="step-bar">
+      <div class="step-item" [class.active]="step >= 1" [class.done]="step > 1" (click)="goToStep(1)">
+        <div class="step-circle">{{ step > 1 ? '✓' : '1' }}</div>
+        <span>Dates & Rooms</span>
+      </div>
+      <div class="step-line" [class.active]="step > 1"></div>
+      <div class="step-item" [class.active]="step >= 2" [class.done]="step > 2" (click)="goToStep(2)">
+        <div class="step-circle">{{ step > 2 ? '✓' : '2' }}</div>
+        <span>Member Details</span>
+      </div>
+      <div class="step-line" [class.active]="step > 2"></div>
+      <div class="step-item" [class.active]="step >= 3" [class.done]="step > 3" (click)="goToStep(3)">
+        <div class="step-circle">{{ step > 3 ? '✓' : '3' }}</div>
+        <span>Select Rooms</span>
+      </div>
+      <div class="step-line" [class.active]="step > 3"></div>
+      <div class="step-item" [class.active]="step >= 4">
+        <div class="step-circle">4</div>
+        <span>Confirm</span>
+      </div>
+    </div>
+
+    <!-- Error Banner -->
+    <div class="alert-danger" *ngIf="error">
+      {{ error }}
+    </div>
+
+    <!-- ───────────────────────────────── STEP 1: Dates & Count ───── -->
+    <div class="wizard-body" *ngIf="step === 1">
+      <form [formGroup]="searchForm">
+        <div class="form-row">
+          <div class="form-group half-width">
+            <label>Check-In Date *</label>
+            <input type="date" formControlName="checkInDate" class="form-control" />
+            <div class="text-danger" *ngIf="searchForm.get('checkInDate')?.touched && searchForm.get('checkInDate')?.invalid">
+              Check-in date is required.
+            </div>
+          </div>
+          <div class="form-group half-width">
+            <label>Check-Out Date *</label>
+            <input type="date" formControlName="checkOutDate" class="form-control" />
+            <div class="text-danger" *ngIf="searchForm.get('checkOutDate')?.touched && searchForm.get('checkOutDate')?.invalid">
+              Check-out date is required.
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half-width">
+            <label>Number of Members *</label>
+            <div class="counter-input">
+              <button type="button" class="counter-btn" (click)="decrementMembers()" [disabled]="searchForm.get('totalMembers')?.value <= 1">−</button>
+              <input type="number" formControlName="totalMembers" class="counter-value" min="1" max="20" (change)="onMembersChange($event)" />
+              <button type="button" class="counter-btn" (click)="incrementMembers()" [disabled]="searchForm.get('totalMembers')?.value >= 20">+</button>
+            </div>
+            <small class="hint">Total number of guests (1 - 20)</small>
+          </div>
+          <div class="form-group half-width">
+            <label>Rooms Needed *</label>
+            <div class="counter-input">
+              <button type="button" class="counter-btn" (click)="decrementRooms()" [disabled]="searchForm.get('roomsNeeded')?.value <= 1">−</button>
+              <input type="number" formControlName="roomsNeeded" class="counter-value" min="1" max="10" (change)="onRoomsChange($event)" />
+              <button type="button" class="counter-btn" (click)="incrementRooms()" [disabled]="searchForm.get('roomsNeeded')?.value >= 10">+</button>
+            </div>
+            <small class="hint">Number of rooms to book (1 - 10)</small>
+          </div>
+        </div>
+
+        <div class="wizard-footer">
+          <button type="button" class="btn btn-outline-secondary" (click)="onCancel()">Cancel</button>
+          <button type="button" class="btn btn-primary" (click)="searchRooms()">
+            Next: Enter Member Details →
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ─────────────────────────────── STEP 2: Member Details ────── -->
+    <div class="wizard-body" *ngIf="step === 2">
+      <p class="step-desc">Enter details for all <strong>{{ searchForm.get('totalMembers')?.value }}</strong> members:</p>
+
+      <div class="member-cards-scroll">
+        <div *ngFor="let form of memberForms; let i = index" class="member-card">
+          <div class="member-card-header">
+            <div class="member-avatar">{{ i + 1 }}</div>
+            <div class="member-label">{{ getMemberLabel(i) }}</div>
+          </div>
+          <form [formGroup]="form" class="member-form-body">
+            <div class="form-group">
+              <label>Full Name *</label>
+              <input type="text" formControlName="name" class="form-control" [placeholder]="i === 0 ? 'Primary guest name' : 'Member ' + (i+1) + ' name'" />
+              <div class="text-danger" *ngIf="form.get('name')?.touched && form.get('name')?.invalid">Name is required.</div>
+            </div>
+            <div class="form-group">
+              <label>ID Number <span class="optional">(Optional)</span></label>
+              <input type="text" formControlName="idNumber" class="form-control" placeholder="Aadhaar / PAN / Voter ID number" />
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="wizard-footer">
+        <button type="button" class="btn btn-outline-secondary" (click)="goBack()">← Back</button>
+        <button type="button" class="btn btn-primary" (click)="proceedToRoomSelection()">
+          Next: Select Rooms →
+        </button>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────── STEP 3: Room Selection ────── -->
+    <div class="wizard-body" *ngIf="step === 3">
+      <div class="selection-header">
+        <div>
+          <h4>Select {{ roomsNeeded }} Room(s)</h4>
+          <p class="step-desc">{{ selectedRooms.length }} of {{ roomsNeeded }} selected</p>
+        </div>
+        <div class="selection-chips">
+          <span *ngFor="let r of selectedRooms" class="selected-chip">Room {{ r.roomNumber }} ✓</span>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="isLoadingRooms" class="loading-state">
+        <p>Searching available rooms...</p>
+      </div>
+
+      <!-- Available Rooms -->
+      <div *ngIf="!isLoadingRooms">
+        <div *ngIf="availableRooms.length === 0 && cleaningRooms.length === 0" class="empty-state">
+          <p>No rooms available for the selected dates.</p>
+        </div>
+
+        <div *ngIf="availableRooms.length > 0">
+          <div class="section-label">Available Rooms</div>
+          <div class="room-grid">
+            <div *ngFor="let room of availableRooms"
+              class="room-card"
+              [class.selected]="isRoomSelected(room)"
+              [class.disabled]="!isRoomSelectable(room) || (!isRoomSelected(room) && selectedRooms.length >= roomsNeeded)"
+              [class.room-card-locked]="!isRoomSelectable(room)"
+              (click)="toggleRoomSelection(room)">
+              <div class="room-select-indicator" [class.locked-indicator]="!isRoomSelectable(room)">
+                <span *ngIf="isRoomSelected(room)">✓</span>
+                <span *ngIf="!isRoomSelected(room) && isRoomSelectable(room)">○</span>
+                <span *ngIf="!isRoomSelectable(room)"><i class="fa-solid fa-lock"></i></span>
+              </div>
+              <div class="room-header">
+                <h4>Room {{ room.roomNumber }}</h4>
+                <span class="room-type">{{ room.roomTypeId }}</span>
+              </div>
+              <div class="room-details">
+                <p><i class="fa-solid fa-bed"></i> Capacity: {{ room.bedCapacity }}</p>
+                <p><i class="fa-solid fa-layer-group"></i> {{ room.floor }}</p>
+              </div>
+              <div class="room-price">
+                <span class="price-val">₹{{ room.price }}</span>/night
+                <span class="price-nights"> × {{ nights }} = ₹{{ room.price * nights }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cleaning Rooms Section (Locked / Not Selectable) -->
+        <div *ngIf="cleaningRooms.length > 0" class="cleaning-suggestion-section">
+          <div class="suggestion-header">
+            <i class="fa-solid fa-broom"></i>
+            Rooms In Cleaning — Not Available
+          </div>
+          <p class="suggestion-subtext">Ye rooms safai (cleaning) me hain, isliye inhe abhi select nahi kiya ja sakta.</p>
+          <div class="room-grid">
+            <div *ngFor="let room of cleaningRooms"
+              class="room-card cleaning-room-card room-card-locked disabled"
+              (click)="onCleaningRoomClick(room)"
+              title="Room is in cleaning and cannot be booked">
+              <div class="cleaning-badge-tag"><i class="fa-solid fa-ban me-1"></i> In Cleaning (Cannot Select)</div>
+              <div class="room-select-indicator locked-indicator">
+                <i class="fa-solid fa-lock"></i>
+              </div>
+              <div class="room-header">
+                <h4>Room {{ room.roomNumber }}</h4>
+                <span class="room-type">{{ room.roomTypeId }}</span>
+              </div>
+              <div class="room-details">
+                <p><i class="fa-solid fa-bed"></i> Capacity: {{ room.bedCapacity }}</p>
+                <p><i class="fa-solid fa-layer-group"></i> {{ room.floor }}</p>
+              </div>
+              <div class="cleaning-locked-msg">
+                <i class="fa-solid fa-triangle-exclamation me-1"></i> Safai chal rahi hai — Book nahi ho sakta
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wizard-footer">
+        <button type="button" class="btn btn-outline-secondary" (click)="goBack()">← Back</button>
+        <button type="button" class="btn btn-primary"
+          [disabled]="selectedRooms.length === 0"
+          (click)="proceedToConfirm()">
+          Next: Confirm Booking →
+        </button>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────── STEP 4: Confirm ─────────────  -->
+    <div class="wizard-body" *ngIf="step === 4">
+      <div class="confirm-grid">
+
+        <!-- Summary Left -->
+        <div class="confirm-section">
+          <h4 class="confirm-section-title">Booking Summary</h4>
+
+          <div class="summary-row">
+            <span>Check-In</span>
+            <strong>{{ searchForm.get('checkInDate')?.value | date:'mediumDate' }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>Check-Out</span>
+            <strong>{{ searchForm.get('checkOutDate')?.value | date:'mediumDate' }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>Nights</span>
+            <strong>{{ nights }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>Total Members</span>
+            <strong>{{ searchForm.get('totalMembers')?.value }}</strong>
+          </div>
+
+          <div class="divider"></div>
+          <div class="summary-row" *ngFor="let room of selectedRooms">
+            <span>Room {{ room.roomNumber }} ({{ room.roomTypeId }})</span>
+            <strong>₹{{ room.price * nights }}</strong>
+          </div>
+          <div class="divider"></div>
+
+          <form [formGroup]="confirmForm">
+            <div class="summary-row editable-row">
+              <label>Discount (₹)</label>
+              <input type="number" formControlName="discountAmount" class="inline-input" min="0" />
+            </div>
+            <div class="summary-row editable-row">
+              <label>Tax (₹)</label>
+              <input type="number" formControlName="taxAmount" class="inline-input" min="0" />
+            </div>
+          </form>
+
+          <div class="divider"></div>
+          <div class="summary-row total-row">
+            <span>Grand Total</span>
+            <strong class="grand-total">₹{{ finalTotalAmount }}</strong>
+          </div>
+        </div>
+
+        <!-- Members Right -->
+        <div class="confirm-section">
+          <h4 class="confirm-section-title">Members ({{ members.length }})</h4>
+          <div *ngFor="let m of members; let i = index" class="member-summary-row">
+            <div class="member-num">{{ i + 1 }}</div>
+            <div>
+              <div class="member-name">{{ m.name }}</div>
+              <div class="member-id" *ngIf="m.idNumber">ID: {{ m.idNumber }}</div>
+              <div class="member-id" *ngIf="!m.idNumber" style="color: #94a3b8;">No ID provided</div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+          <div class="form-group" [formGroup]="confirmForm">
+            <label>Notes (Optional)</label>
+            <textarea formControlName="notes" class="form-control" rows="2" placeholder="Special requests..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="wizard-footer">
+        <button type="button" class="btn btn-outline-secondary" (click)="goBack()" [disabled]="isSubmitting">← Back</button>
+        <button type="button" class="btn btn-success" (click)="confirmBooking()" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Creating Booking...' : '✓ Confirm & Book ' + selectedRooms.length + ' Room(s)' }}
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

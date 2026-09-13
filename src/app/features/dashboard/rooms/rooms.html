@@ -1,0 +1,193 @@
+<div class="room-management-container">
+  <div class="header-actions">
+    <h2>Room Management</h2>
+    <button class="btn btn-primary" (click)="openAddModal()">+ Add Room</button>
+  </div>
+
+  <!-- Alerts -->
+  <div *ngIf="successMessage" class="alert alert-success">
+    {{ successMessage }}
+  </div>
+  <div *ngIf="error" class="alert alert-danger">
+    {{ error }}
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-container">
+    <input type="text" placeholder="Search Room No..." (input)="onSearch($event)" class="form-control" />
+    
+    <select (change)="onStatusFilterChange($event)" class="form-control">
+      <option value="">All Statuses</option>
+      <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+    </select>
+
+    <select (change)="onFloorFilterChange($event)" class="form-control">
+      <option value="">All Floors</option>
+      <option *ngFor="let floor of floors" [value]="floor">{{ floor }}</option>
+    </select>
+  </div>
+
+  <!-- Table -->
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Room Number</th>
+          <th>Type</th>
+          <th>Floor</th>
+          <th>Price</th>
+          <th>Capacity</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="isLoading">
+          <td colspan="7" class="text-center">Loading rooms...</td>
+        </tr>
+        <tr *ngIf="!isLoading && rooms.length === 0">
+          <td colspan="7" class="text-center">No rooms found.</td>
+        </tr>
+        <tr *ngFor="let room of rooms">
+          <td>{{ room.roomNumber }}</td>
+          <td>{{ room.roomTypeId }}</td>
+          <td>{{ room.floor }}</td>
+          <td>₹{{ room.price }}</td>
+          <td>{{ room.bedCapacity }}</td>
+          <td>
+            <span 
+              class="badge" 
+              [ngClass]="'status-' + room.status.toLowerCase()"
+              [class.clickable-badge]="room.status === 'CLEANING'"
+              [title]="room.status === 'CLEANING' ? 'Click to mark as Ready' : ''"
+              (click)="room.status === 'CLEANING' ? openCleaningModal(room) : null">
+              <i *ngIf="room.status === 'CLEANING'" class="fa-solid fa-broom me-1"></i>
+              {{ room.status }}
+              <i *ngIf="room.status === 'CLEANING'" class="fa-solid fa-hand-pointer ms-1 pulse-icon"></i>
+            </span>
+          </td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary" (click)="openEditModal(room)">Edit</button>
+            <button class="btn btn-sm btn-outline-danger" (click)="deleteRoom(room._id)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="totalPages > 1">
+    <button class="btn btn-sm" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">Previous</button>
+    <span>Page {{ currentPage }} of {{ totalPages }}</span>
+    <button class="btn btn-sm" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">Next</button>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <div class="modal-backdrop" *ngIf="showModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>{{ isEditing ? 'Edit Room' : 'Add Room' }}</h3>
+        <button class="close-btn" (click)="closeModal()">×</button>
+      </div>
+      
+      <div class="modal-body">
+        <form [formGroup]="roomForm" (ngSubmit)="onSubmit()">
+          
+          <div class="form-group">
+            <label>Room Number</label>
+            <input type="text" formControlName="roomNumber" class="form-control" placeholder="e.g. 101" />
+            <div *ngIf="roomForm.get('roomNumber')?.touched && roomForm.get('roomNumber')?.invalid" class="text-danger">
+              Room number is required.
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Room Type</label>
+            <select formControlName="roomTypeId" class="form-control">
+              <option *ngFor="let type of roomTypes" [value]="type">{{ type }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Floor</label>
+            <select formControlName="floor" class="form-control">
+              <option value="">Select Floor</option>
+              <option *ngFor="let floor of floors" [value]="floor">{{ floor }}</option>
+            </select>
+            <div *ngIf="roomForm.get('floor')?.touched && roomForm.get('floor')?.invalid" class="text-danger">
+              Floor is required.
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Price (₹)</label>
+            <input type="number" formControlName="price" class="form-control" />
+            <div *ngIf="roomForm.get('price')?.touched && roomForm.get('price')?.invalid" class="text-danger">
+              Valid positive price is required.
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Bed Capacity</label>
+            <input type="number" formControlName="bedCapacity" class="form-control" min="1" />
+            <div *ngIf="roomForm.get('bedCapacity')?.touched && roomForm.get('bedCapacity')?.invalid" class="text-danger">
+              Valid bed capacity (min 1) is required.
+            </div>
+          </div>
+
+          <div class="form-group" *ngIf="isEditing">
+            <label>Status</label>
+            <select formControlName="status" class="form-control">
+              <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+            </select>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeModal()" [disabled]="isSubmitting">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="isSubmitting">
+              {{ isSubmitting ? (isEditing ? 'Updating...' : 'Adding...') : (isEditing ? 'Update Room' : 'Add Room') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cleaning Status Modal -->
+  <div class="modal-backdrop" *ngIf="showCleaningModal">
+    <div class="modal-content cleaning-modal">
+      <div class="modal-header cleaning-header">
+        <div class="cleaning-icon-wrap">
+          <i class="fa-solid fa-broom"></i>
+        </div>
+        <div>
+          <h3>Room {{ cleaningRoom?.roomNumber }} — In Cleaning</h3>
+          <p class="subtitle">{{ cleaningRoom?.roomTypeId }} · {{ cleaningRoom?.floor }}</p>
+        </div>
+        <button class="close-btn" (click)="closeCleaningModal()">×</button>
+      </div>
+
+      <div class="modal-body text-center">
+        <div class="cleaning-status-info">
+          <i class="fa-solid fa-spray-can-sparkles cleaning-big-icon"></i>
+          <h4>Housekeeping in Progress</h4>
+          <p>This room is currently being cleaned. Mark it as <strong>Available</strong> once cleaning is complete and the room is ready for the next guest.</p>
+        </div>
+
+        <div class="room-quick-info">
+          <div class="info-chip"><i class="fa-solid fa-bed"></i> Capacity: {{ cleaningRoom?.bedCapacity }}</div>
+          <div class="info-chip"><i class="fa-solid fa-tag"></i> ₹{{ cleaningRoom?.price }}/night</div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeCleaningModal()" [disabled]="isMarkingReady">Cancel</button>
+        <button type="button" class="btn btn-success" (click)="markRoomAvailable()" [disabled]="isMarkingReady">
+          <i class="fa-solid fa-check"></i>
+          {{ isMarkingReady ? 'Marking...' : 'Mark as Available' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

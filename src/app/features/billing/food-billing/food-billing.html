@@ -1,0 +1,301 @@
+<div class="billing-container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h2>Food & Restaurant Billing</h2>
+      <p class="subtitle">Quick billing for dining and restaurant customers</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline-primary" (click)="openCreateBill()">
+        <i class="fa-solid fa-bolt me-1"></i> Quick Walk-in Bill
+      </button>
+      <button class="btn btn-primary" (click)="openQuickAddModal()">
+        <i class="fa-solid fa-user-plus me-1"></i>  Add Customer & Bill
+      </button>
+    </div>
+  </div>
+
+  <!-- Success & Global Alerts -->
+  <div *ngIf="successMessage" class="alert alert-success">
+    <i class="fa-solid fa-check-circle me-2"></i> {{ successMessage }}
+  </div>
+  <div *ngIf="error" class="alert alert-danger">
+    <i class="fa-solid fa-circle-exclamation me-2"></i> {{ error }}
+  </div>
+
+  <!-- Tabs Navigation -->
+  <div class="billing-tabs">
+    <button 
+      type="button"
+      class="tab-btn" 
+      [class.active]="activeTab === 'bills'" 
+      (click)="activeTab = 'bills'">
+      <i class="fa-solid fa-receipt me-2"></i> All Food Bills ({{ billsTotalCount }})
+    </button>
+    <button 
+      type="button"
+      class="tab-btn" 
+      [class.active]="activeTab === 'customers'" 
+      (click)="activeTab = 'customers'">
+      <i class="fa-solid fa-users me-2"></i> Billing Customers ({{ totalCount }})
+    </button>
+  </div>
+
+  <!-- TAB 1: ALL FOOD BILLS -->
+  <div *ngIf="activeTab === 'bills'">
+    <!-- Search Bar for Bills -->
+    <div class="search-toolbar">
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input 
+          type="text" 
+          class="form-control search-input" 
+          placeholder="Search by Bill No (e.g. BILL-0001), Customer Name or Mobile..." 
+          (input)="onBillsSearch($event)" />
+      </div>
+    </div>
+
+    <!-- Bills Table Card -->
+    <div class="content-card">
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Bill Number</th>
+              <th>Customer</th>
+              <th>Items</th>
+              <th>Payment</th>
+              <th>Amount</th>
+              <th>Date & Time</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Loading -->
+            <tr *ngIf="isLoadingBills">
+              <td colspan="7" class="text-center py-4">
+                <i class="fa-solid fa-spinner fa-spin me-2"></i> Loading food bills...
+              </td>
+            </tr>
+
+            <!-- Empty -->
+            <tr *ngIf="!isLoadingBills && bills.length === 0">
+              <td colspan="7" class="text-center py-4 empty-row">
+                <i class="fa-solid fa-receipt empty-icon"></i>
+                <p class="empty-title">No food bills found</p>
+                <p class="empty-desc">Click "Quick Walk-in Bill" or "+ Add Customer & Bill" to create your first bill.</p>
+              </td>
+            </tr>
+
+            <!-- Bills Rows -->
+            <tr *ngFor="let b of bills">
+              <td>
+                <strong class="text-primary font-monospace">{{ b.billNumber }}</strong>
+              </td>
+              <td>
+                <div>
+                  <strong>{{ b.customerName }}</strong>
+                  <div class="small text-muted"><i class="fa-solid fa-phone me-1"></i>{{ b.customerMobile }}</div>
+                </div>
+              </td>
+              <td>
+                <span class="badge bg-light text-dark">{{ b.items.length }} Item(s)</span>
+                <div class="text-muted small bill-items-preview">
+                  <span *ngFor="let it of b.items; let last = last">{{ it.itemName }} (x{{ it.quantity }}){{ !last ? ', ' : '' }}</span>
+                </div>
+              </td>
+              <td>
+                <span class="badge status-confirmed">{{ b.paymentMode }}</span>
+                <span class="badge ms-1" [ngClass]="b.paymentStatus === 'PAID' ? 'status-checked_in' : 'status-reserved'">{{ b.paymentStatus }}</span>
+              </td>
+              <td>
+                <strong class="bill-grand-amount">₹{{ b.finalAmount }}</strong>
+                <div class="small text-muted" *ngIf="b.discountAmount">Disc: -₹{{ b.discountAmount }}</div>
+              </td>
+              <td>
+                <div>{{ b.createdAt | date:'mediumDate' }}</div>
+                <div class="small text-muted">{{ b.createdAt | date:'shortTime' }}</div>
+              </td>
+              <td class="text-right">
+                <div class="action-btn-group">
+                  <button class="btn btn-sm btn-outline-primary" (click)="openEditBill(b)" title="Edit Bill">
+                    <i class="fa-solid fa-pen-to-square me-1"></i> Edit
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" (click)="deleteBill(b)" title="Delete Bill">
+                    <i class="fa-solid fa-trash me-1"></i> Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination for Bills -->
+      <div class="table-footer" *ngIf="billsTotalPages > 1">
+        <span class="page-info">Page {{ billsPage }} of {{ billsTotalPages }} ({{ billsTotalCount }} bills)</span>
+        <div class="pagination-controls">
+          <button class="btn btn-sm btn-outline-secondary" [disabled]="billsPage === 1" (click)="changeBillsPage(billsPage - 1)">
+            Previous
+          </button>
+          <button class="btn btn-sm btn-outline-secondary" [disabled]="billsPage === billsTotalPages" (click)="changeBillsPage(billsPage + 1)">
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: BILLING CUSTOMERS -->
+  <div *ngIf="activeTab === 'customers'">
+    <!-- Search Bar for Customers -->
+    <div class="search-toolbar">
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input 
+          type="text" 
+          class="form-control search-input" 
+          placeholder="Search customer by Name or Mobile Number..." 
+          (input)="onSearch($event)" />
+      </div>
+    </div>
+
+    <!-- Customer Cards Grid -->
+    <div class="content-card">
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Customer Name</th>
+              <th>Mobile Number</th>
+              <th>Member Since</th>
+              <th class="text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Loading -->
+            <tr *ngIf="isLoading">
+              <td colspan="4" class="text-center py-4">
+                <i class="fa-solid fa-spinner fa-spin me-2"></i> Loading customers...
+              </td>
+            </tr>
+
+            <!-- Empty -->
+            <tr *ngIf="!isLoading && customers.length === 0">
+              <td colspan="4" class="text-center py-4 empty-row">
+                <i class="fa-solid fa-users empty-icon"></i>
+                <p class="empty-title">No billing customers found</p>
+                <p class="empty-desc">Click "+ Add Customer & Bill" to register a customer with just Name & Mobile.</p>
+              </td>
+            </tr>
+
+            <!-- Data Rows -->
+            <tr *ngFor="let c of customers">
+              <td>
+                <div class="cust-info">
+                  <span class="cust-avatar"><i class="fa-solid fa-user"></i></span>
+                  <div>
+                    <strong class="cust-name">{{ c.name }}</strong>
+                    <span class="view-prof-link" (click)="viewCustomerProfile(c._id)">View Profile →</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="cust-mobile"><i class="fa-solid fa-phone me-1"></i> {{ c.mobile }}</span>
+              </td>
+              <td>
+                <span class="cust-date">{{ c.createdAt | date:'mediumDate' }}</span>
+              </td>
+              <td class="text-right">
+                <button class="btn btn-sm btn-create-bill" (click)="openCreateBill(c)">
+                  <i class="fa-solid fa-receipt me-1"></i> Create Bill
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="table-footer" *ngIf="totalPages > 1">
+        <span class="page-info">Page {{ currentPage }} of {{ totalPages }} ({{ totalCount }} customers)</span>
+        <div class="pagination-controls">
+          <button class="btn btn-sm btn-outline-secondary" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">
+            Previous
+          </button>
+          <button class="btn btn-sm btn-outline-secondary" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ───────────────────────────────────────────────────────────────── -->
+<!-- MODAL: Quick Add Customer (Name + Mobile Only)                   -->
+<!-- ───────────────────────────────────────────────────────────────── -->
+<div class="modal-backdrop" *ngIf="showQuickCustomerModal">
+  <div class="modal-container quick-cust-modal">
+    <div class="modal-header">
+      <h3>Quick Add Customer for Billing</h3>
+      <button class="close-btn" (click)="closeQuickAddModal()">×</button>
+    </div>
+
+    <form [formGroup]="quickCustomerForm" (ngSubmit)="saveCustomerAndCreateBill()">
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Customer Full Name *</label>
+          <input 
+            type="text" 
+            formControlName="name" 
+            class="form-control" 
+            placeholder="e.g. Rahul Sharma" />
+          <div class="text-danger" *ngIf="quickCustomerForm.get('name')?.touched && quickCustomerForm.get('name')?.invalid">
+            Customer name is required.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Mobile Number (10 digits) *</label>
+          <input 
+            type="tel" 
+            formControlName="mobile" 
+            class="form-control" 
+            maxlength="10" 
+            placeholder="e.g. 9876543210" />
+          <div class="text-danger" *ngIf="quickCustomerForm.get('mobile')?.touched && quickCustomerForm.get('mobile')?.invalid">
+            Please enter a valid 10-digit mobile number.
+          </div>
+        </div>
+
+        <small class="hint-text">
+          <i class="fa-solid fa-circle-info me-1"></i> No ID proof or address needed for dining customers.
+        </small>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" (click)="closeQuickAddModal()" [disabled]="isSubmittingCustomer">
+          Cancel
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="isSubmittingCustomer || quickCustomerForm.invalid">
+          <i *ngIf="isSubmittingCustomer" class="fa-solid fa-spinner fa-spin me-1"></i>
+          {{ isSubmittingCustomer ? 'Saving...' : 'Save & Open Live Bill →' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ───────────────────────────────────────────────────────────────── -->
+<!-- POS Live Bill Modal Integration                                  -->
+<!-- ───────────────────────────────────────────────────────────────── -->
+<app-create-bill 
+  *ngIf="showCreateBillModal" 
+  [customer]="selectedCustomerForBill"
+  [editingBill]="editingBill"
+  (close)="closeCreateBill()"
+  (billGenerated)="onBillGenerated($event)">
+</app-create-bill>
