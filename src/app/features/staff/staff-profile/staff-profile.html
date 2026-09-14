@@ -1,0 +1,261 @@
+<div class="profile-container">
+  <!-- Top Navigation & Title -->
+  <div class="profile-top-bar">
+    <button class="btn-back" (click)="goBack()">
+      <i class="fa-solid fa-arrow-left"></i> Back to Staff Directory
+    </button>
+    <h2>Staff Profile & Attendance</h2>
+  </div>
+
+  <!-- Feedback Notifications -->
+  <div *ngIf="successMessage" class="alert-banner alert-success">
+    <span class="icon">✓</span>
+    <span>{{ successMessage }}</span>
+  </div>
+  <div *ngIf="errorMessage" class="alert-banner alert-danger">
+    <span class="icon">⚠</span>
+    <span>{{ errorMessage }}</span>
+  </div>
+
+  <!-- Loading Profile State -->
+  <div *ngIf="isLoadingProfile" class="loading-state">
+    <i class="fa-solid fa-spinner fa-spin state-spinner"></i>
+    <p>Loading staff member profile...</p>
+  </div>
+
+  <div *ngIf="!isLoadingProfile && staff" class="profile-layout">
+    <!-- 1. Staff Information Card -->
+    <div class="staff-info-card">
+      <div class="info-card-header">
+        <div class="staff-avatar-large">
+          <i class="fa-solid fa-user-tie"></i>
+        </div>
+        <div class="staff-title-group">
+          <h3>{{ staff.staffName }}</h3>
+          <span
+            class="status-pill"
+            [class.status-active]="staff.isActive"
+            [class.status-inactive]="!staff.isActive">
+            <span class="dot"></span>
+            {{ staff.isActive ? 'Active Staff' : 'Inactive Staff' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="info-card-body">
+        <div class="info-row">
+          <span class="info-label"><i class="fa-solid fa-phone"></i> Mobile Number</span>
+          <span class="info-value font-mono">{{ staff.mobileNumber }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label"><i class="fa-solid fa-location-dot"></i> Address</span>
+          <span class="info-value">{{ staff.address || 'Not specified' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label"><i class="fa-regular fa-calendar-check"></i> Date Joined</span>
+          <span class="info-value">{{ staff.createdAt | date:'longDate' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Attendance Overview Section -->
+    <div class="attendance-section">
+      <!-- Month Navigation Bar -->
+      <div class="month-nav-card">
+        <div class="nav-left">
+          <button type="button" class="btn-month-nav" (click)="prevMonth()" title="Previous Month">
+            <i class="fa-solid fa-chevron-left"></i> Previous
+          </button>
+          <div class="current-month-display">
+            <i class="fa-regular fa-calendar-days month-icon"></i>
+            <span class="month-name">{{ getMonthName() }}</span>
+          </div>
+          <button
+            type="button"
+            class="btn-month-nav"
+            [disabled]="isNextMonthDisabled()"
+            (click)="nextMonth()"
+            title="Next Month">
+            Next <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+
+        <div class="nav-right">
+          <span class="calendar-hint">
+            <i class="fa-solid fa-circle-info"></i> Click any past or today date to update attendance status
+          </span>
+        </div>
+      </div>
+
+      <!-- Monthly Attendance Summary Cards -->
+      <div class="summary-metrics-grid">
+        <!-- Present -->
+        <div class="metric-card metric-present">
+          <div class="metric-icon"><i class="fa-solid fa-circle-check"></i></div>
+          <div class="metric-text">
+            <span class="metric-val">{{ summary.present }}</span>
+            <span class="metric-lbl">Present Days</span>
+          </div>
+        </div>
+
+        <!-- Absent -->
+        <div class="metric-card metric-absent">
+          <div class="metric-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+          <div class="metric-text">
+            <span class="metric-val">{{ summary.absent }}</span>
+            <span class="metric-lbl">Absent Days</span>
+          </div>
+        </div>
+
+        <!-- Half Day -->
+        <div class="metric-card metric-half">
+          <div class="metric-icon"><i class="fa-solid fa-adjust"></i></div>
+          <div class="metric-text">
+            <span class="metric-val">{{ summary.halfDay }}</span>
+            <span class="metric-lbl">Half Days</span>
+          </div>
+        </div>
+
+        <!-- Paid Leave -->
+        <div class="metric-card metric-leave">
+          <div class="metric-icon"><i class="fa-solid fa-umbrella-beach"></i></div>
+          <div class="metric-text">
+            <span class="metric-val">{{ summary.paidLeave }}</span>
+            <span class="metric-lbl">Paid Leaves</span>
+          </div>
+        </div>
+
+        <!-- Effective Payable Days -->
+        <div class="metric-card metric-effective">
+          <div class="metric-icon"><i class="fa-solid fa-coins"></i></div>
+          <div class="metric-text">
+            <span class="metric-val">{{ summary.effectivePresentDays }}</span>
+            <span class="metric-lbl">Effective Days</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7-Column Attendance Calendar Grid -->
+      <div class="calendar-wrapper">
+        <div *ngIf="isLoadingAttendance" class="calendar-loading-overlay">
+          <i class="fa-solid fa-spinner fa-spin"></i>
+          <span>Updating attendance...</span>
+        </div>
+
+        <!-- Weekday Headers (Mon to Sun) -->
+        <div class="calendar-weekdays-row">
+          <span class="weekday-col">MON</span>
+          <span class="weekday-col">TUE</span>
+          <span class="weekday-col">WED</span>
+          <span class="weekday-col">THU</span>
+          <span class="weekday-col">FRI</span>
+          <span class="weekday-col">SAT</span>
+          <span class="weekday-col">SUN</span>
+        </div>
+
+        <!-- Days Grid -->
+        <div class="calendar-days-grid">
+          <div
+            *ngFor="let day of calendarDays"
+            class="calendar-cell"
+            [class.cell-empty]="day === null"
+            [class.cell-today]="day?.isToday"
+            [class.cell-future]="day?.isFuture"
+            [class.cell-present]="day?.status === 'PRESENT'"
+            [class.cell-absent]="day?.status === 'ABSENT'"
+            [class.cell-half]="day?.status === 'HALF_DAY'"
+            [class.cell-leave]="day?.status === 'PAID_LEAVE'"
+            (click)="day && onDateClick(day)">
+            
+            <ng-container *ngIf="day">
+              <!-- Day Number Header -->
+              <div class="cell-top">
+                <span class="day-number">{{ day.dayNumber }}</span>
+                <span *ngIf="day.isToday" class="today-tag">Today</span>
+              </div>
+
+              <!-- Status Badge -->
+              <div class="cell-status-wrap">
+                <!-- Present -->
+                <span *ngIf="day.status === 'PRESENT'" class="att-badge badge-p" title="Present">
+                  <i class="fa-solid fa-check"></i> Present
+                </span>
+
+                <!-- Absent -->
+                <span *ngIf="day.status === 'ABSENT'" class="att-badge badge-a" title="Absent">
+                  <i class="fa-solid fa-xmark"></i> Absent
+                </span>
+
+                <!-- Half Day -->
+                <span *ngIf="day.status === 'HALF_DAY'" class="att-badge badge-h" title="Half Day">
+                  <i class="fa-solid fa-adjust"></i> Half Day
+                </span>
+
+                <!-- Paid Leave -->
+                <span *ngIf="day.status === 'PAID_LEAVE'" class="att-badge badge-pl" title="Paid Leave">
+                  <i class="fa-solid fa-umbrella-beach"></i> Paid Leave
+                </span>
+
+                <!-- Future Unmarked -->
+                <span *ngIf="day.isFuture" class="att-badge badge-future" title="Future date">
+                  <i class="fa-solid fa-lock"></i>
+                </span>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT ATTENDANCE MODAL / POPOVER -->
+  <div *ngIf="showAttendanceModal && selectedDay" class="modal-backdrop" (click)="closeAttendanceModal()">
+    <div class="modal-card attendance-modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="header-title-box">
+          <i class="fa-regular fa-calendar-check header-icon"></i>
+          <div>
+            <h3>Mark Attendance</h3>
+            <span class="modal-subtitle">{{ selectedDay.date | date:'fullDate' }}</span>
+          </div>
+        </div>
+        <button type="button" class="btn-close-modal" (click)="closeAttendanceModal()" [disabled]="isUpdatingAttendance">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="attendance-modal-body">
+        <div class="staff-target-info">
+          <span class="staff-name-lbl">{{ staff?.staffName }}</span>
+          <span class="current-status-lbl">Current Status: <strong>{{ selectedDay.status || 'None' }}</strong></span>
+        </div>
+
+        <p class="select-hint">Select attendance status for this date:</p>
+
+        <!-- Status Option Buttons -->
+        <div class="status-options-grid">
+          <button
+            *ngFor="let opt of statusOptions"
+            type="button"
+            class="status-option-btn {{ opt.colorClass }}"
+            [class.selected]="selectedStatus === opt.key"
+            (click)="selectStatus(opt.key)">
+            <i class="fa-solid {{ opt.icon }}"></i>
+            <span class="opt-label">{{ opt.label }}</span>
+            <span class="opt-code">({{ opt.shortCode }})</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-cancel" (click)="closeAttendanceModal()" [disabled]="isUpdatingAttendance">
+          Cancel
+        </button>
+        <button type="button" class="btn-modal-submit" (click)="saveAttendance()" [disabled]="isUpdatingAttendance">
+          <i *ngIf="isUpdatingAttendance" class="fa-solid fa-spinner fa-spin"></i>
+          <span>Save Attendance</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

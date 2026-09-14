@@ -1,0 +1,279 @@
+<div class="staff-container">
+  <!-- Top Action Header -->
+  <div class="staff-header-actions">
+    <div class="header-left">
+      <h2>Staff Management</h2>
+      <p class="subtitle">Manage hotel staff profiles, contact details, and daily attendance records</p>
+    </div>
+    <div class="header-right">
+      <button class="btn-add-staff" (click)="openAddModal()">
+        <i class="fa-solid fa-user-plus"></i> Add Staff
+      </button>
+    </div>
+  </div>
+
+  <!-- Feedback Banners -->
+  <div *ngIf="successMessage" class="alert-banner alert-success">
+    <span class="icon">✓</span>
+    <span>{{ successMessage }}</span>
+  </div>
+  <div *ngIf="errorMessage" class="alert-banner alert-danger">
+    <span class="icon">⚠</span>
+    <span>{{ errorMessage }}</span>
+  </div>
+
+  <!-- Search & Filter Controls -->
+  <div class="staff-controls-card">
+    <div class="search-box">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input
+        type="text"
+        [value]="searchTerm"
+        (input)="onSearchInput($event)"
+        placeholder="Search staff by name or mobile number..."
+        class="search-input"
+      />
+      <button *ngIf="searchTerm" (click)="clearSearch()" class="btn-clear-search" title="Clear search">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="filter-tabs">
+      <button
+        type="button"
+        class="filter-tab"
+        [class.active]="statusFilter === 'all'"
+        (click)="onFilterStatus('all')">
+        All Staff
+      </button>
+      <button
+        type="button"
+        class="filter-tab"
+        [class.active]="statusFilter === 'active'"
+        (click)="onFilterStatus('active')">
+        Active
+      </button>
+      <button
+        type="button"
+        class="filter-tab"
+        [class.active]="statusFilter === 'inactive'"
+        (click)="onFilterStatus('inactive')">
+        Inactive
+      </button>
+    </div>
+  </div>
+
+  <!-- Staff Directory Section -->
+  <div class="staff-content-wrapper">
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="state-container">
+      <i class="fa-solid fa-spinner fa-spin state-spinner"></i>
+      <p>Loading staff directory...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && staffList.length === 0" class="state-container empty-state">
+      <div class="empty-icon-wrap">
+        <i class="fa-solid fa-users-slash"></i>
+      </div>
+      <h4>No Staff Members Found</h4>
+      <p *ngIf="searchTerm">No results match "<strong>{{ searchTerm }}</strong>". Try searching another keyword.</p>
+      <p *ngIf="!searchTerm">Start building your team by adding your first staff member.</p>
+      <button class="btn-add-empty" (click)="openAddModal()">
+        <i class="fa-solid fa-user-plus"></i> Add New Staff
+      </button>
+    </div>
+
+    <!-- Staff Cards Grid -->
+    <div *ngIf="!isLoading && staffList.length > 0" class="staff-grid">
+      <div *ngFor="let staff of staffList" class="staff-card" (click)="viewProfile(staff._id)">
+        <!-- Card Top Bar -->
+        <div class="card-top-bar">
+          <div class="staff-avatar">
+            <i class="fa-solid fa-user-tie"></i>
+          </div>
+          <div class="staff-badge-group">
+            <span
+              class="status-pill"
+              [class.status-active]="staff.isActive"
+              [class.status-inactive]="!staff.isActive"
+              (click)="toggleStaffStatus(staff, $event)"
+              [title]="'Click to mark ' + (staff.isActive ? 'Inactive' : 'Active')">
+              <span class="dot"></span>
+              {{ staff.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Staff Main Details -->
+        <div class="card-body">
+          <h4 class="staff-name">{{ staff.staffName }}</h4>
+          
+          <div class="detail-item">
+            <i class="fa-solid fa-phone detail-icon"></i>
+            <span class="detail-text">{{ staff.mobileNumber }}</span>
+          </div>
+
+          <div class="detail-item">
+            <i class="fa-solid fa-location-dot detail-icon"></i>
+            <span class="detail-text">{{ staff.address || 'Address not provided' }}</span>
+          </div>
+
+          <div class="detail-item date-item">
+            <i class="fa-regular fa-calendar detail-icon"></i>
+            <span class="detail-text">Added {{ staff.createdAt | date:'mediumDate' }}</span>
+          </div>
+        </div>
+
+        <!-- Card Bottom Actions -->
+        <div class="card-actions" (click)="$event.stopPropagation()">
+          <button
+            type="button"
+            class="btn-action btn-calendar"
+            (click)="viewProfile(staff._id)"
+            title="View Profile & Attendance Calendar">
+            <i class="fa-solid fa-calendar-check"></i> Attendance
+          </button>
+          <button
+            type="button"
+            class="btn-action btn-edit"
+            (click)="openEditModal(staff, $event)"
+            title="Edit Staff Details">
+            <i class="fa-solid fa-pen-to-square"></i> Edit
+          </button>
+          <button
+            type="button"
+            class="btn-action btn-delete"
+            (click)="openDeleteModal(staff, $event)"
+            title="Delete Staff">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="totalPages > 1 && !isLoading" class="pagination-bar">
+      <button
+        type="button"
+        class="btn-page"
+        [disabled]="currentPage === 1"
+        (click)="changePage(currentPage - 1)">
+        ‹ Previous
+      </button>
+      <span class="page-indicator">Page {{ currentPage }} of {{ totalPages }} ({{ totalCount }} Total)</span>
+      <button
+        type="button"
+        class="btn-page"
+        [disabled]="currentPage === totalPages"
+        (click)="changePage(currentPage + 1)">
+        Next ›
+      </button>
+    </div>
+  </div>
+
+  <!-- ADD / EDIT STAFF MODAL -->
+  <div *ngIf="showAddEditModal" class="modal-backdrop" (click)="closeAddEditModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ isEditing ? 'Edit Staff Member' : 'Add New Staff Member' }}</h3>
+        <button type="button" class="btn-close-modal" (click)="closeAddEditModal()" [disabled]="isSubmitting">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form [formGroup]="staffForm" (ngSubmit)="saveStaff()" class="modal-form">
+        <!-- Staff Name -->
+        <div class="form-group">
+          <label for="staffName">Staff Full Name <span class="required-star">*</span></label>
+          <input
+            id="staffName"
+            type="text"
+            formControlName="staffName"
+            placeholder="e.g. Rahul Sharma"
+            class="form-control"
+            [class.is-invalid]="staffForm.get('staffName')?.touched && staffForm.get('staffName')?.invalid"
+          />
+          <div *ngIf="staffForm.get('staffName')?.touched && staffForm.get('staffName')?.invalid" class="field-error">
+            Staff name is required (min 2 characters).
+          </div>
+        </div>
+
+        <!-- Mobile Number -->
+        <div class="form-group">
+          <label for="mobileNumber">Mobile Number <span class="required-star">*</span></label>
+          <div class="input-prefix-wrapper">
+            <span class="input-prefix">+91</span>
+            <input
+              id="mobileNumber"
+              type="tel"
+              formControlName="mobileNumber"
+              placeholder="e.g. 9876543210"
+              class="form-control input-with-prefix"
+              maxlength="10"
+              [class.is-invalid]="staffForm.get('mobileNumber')?.touched && staffForm.get('mobileNumber')?.invalid"
+            />
+          </div>
+          <div *ngIf="staffForm.get('mobileNumber')?.touched && staffForm.get('mobileNumber')?.invalid" class="field-error">
+            Please enter a valid 10-digit Indian mobile number.
+          </div>
+        </div>
+
+        <!-- Address -->
+        <div class="form-group">
+          <label for="address">Address / City (Optional)</label>
+          <textarea
+            id="address"
+            formControlName="address"
+            rows="2"
+            placeholder="e.g. Sikar Road, Jaipur"
+            class="form-control"
+          ></textarea>
+        </div>
+
+        <!-- Hint on Add: Auto Attendance -->
+        <div *ngIf="!isEditing" class="info-note">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>Today's attendance will automatically be recorded as <strong>PRESENT</strong> for this staff member.</span>
+        </div>
+
+        <!-- Modal Actions -->
+        <div class="modal-footer">
+          <button type="button" class="btn-modal-cancel" (click)="closeAddEditModal()" [disabled]="isSubmitting">
+            Cancel
+          </button>
+          <button type="submit" class="btn-modal-submit" [disabled]="staffForm.invalid || isSubmitting">
+            <i *ngIf="isSubmitting" class="fa-solid fa-spinner fa-spin"></i>
+            <span>{{ isEditing ? 'Save Changes' : 'Create Staff' }}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- DELETE CONFIRMATION MODAL -->
+  <div *ngIf="showDeleteModal" class="modal-backdrop" (click)="closeDeleteModal()">
+    <div class="modal-card modal-delete-card" (click)="$event.stopPropagation()">
+      <div class="delete-icon-warning">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <h3>Delete Staff Member?</h3>
+      <p class="delete-confirm-text">
+        Are you sure you want to delete <strong>{{ staffToDelete?.staffName }}</strong>?
+      </p>
+      <p class="delete-sub-text">
+        This staff member will be removed from your active directory. All historical attendance logs will be securely preserved for reporting.
+      </p>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-cancel" (click)="closeDeleteModal()" [disabled]="isDeleting">
+          Cancel
+        </button>
+        <button type="button" class="btn-modal-danger" (click)="confirmDelete()" [disabled]="isDeleting">
+          <i *ngIf="isDeleting" class="fa-solid fa-spinner fa-spin"></i>
+          <span>Confirm Delete</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

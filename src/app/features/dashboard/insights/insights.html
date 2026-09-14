@@ -1,0 +1,472 @@
+<div class="insights-container">
+  <!-- Top Welcome Header -->
+  <div class="insights-top-header">
+    <div class="header-text">
+      <h2>Business Insights & Live Overview</h2>
+      <p>Real-time analytics for <strong>{{ businessName }}</strong>, room housekeeping queue, and customer statistics.</p>
+    </div>
+    <div class="header-refresh">
+      <button class="btn-refresh" (click)="loadRoomsData(); loadCustomersData(); loadStaffAttendanceData();" [disabled]="isLoading" title="Refresh Live Data">
+        <i class="fa-solid fa-arrows-rotate" [class.fa-spin]="isLoading"></i>
+        <span>Refresh Insights</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Action Success Banner -->
+  @if (actionSuccessMessage) {
+    <div class="alert-success-banner">
+      <span class="banner-icon">✓</span>
+      <span>{{ actionSuccessMessage }}</span>
+    </div>
+  }
+
+  <!-- 1. AUTO-SCROLLING HERO CAROUSEL -->
+  <div class="carousel-wrapper" (mouseenter)="stopAutoSlide()" (mouseleave)="startAutoSlide()">
+    <!-- Persistent Brand Header Bar across all slides (Business Name on Left, Logo on Right) -->
+    <div class="carousel-brand-bar">
+      <div class="brand-bar-left">
+        <div class="brand-business-pill" [title]="businessName">
+          <span class="pill-icon"><i class="fa-solid fa-hotel"></i></span>
+          <div class="pill-text-block">
+            <span class="pill-label">BUSINESS</span>
+            <span class="pill-title">{{ businessName }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="brand-bar-right">
+        <div class="brand-logo-pill" title="VyparSetu">
+          <img src="assets/Logo.png" alt="VyparSetu Logo" class="carousel-brand-logo-img" />
+        </div>
+      </div>
+    </div>
+
+    <div class="carousel-track">
+      <!-- Slide 0: Business Name & Happy Customers -->
+      <div class="carousel-slide slide-0" [class.active]="currentSlide === 0">
+        <div class="slide-overlay"></div>
+        <div class="slide-content">
+          <div class="slide-badge">
+            <span class="badge-icon">✨</span>
+            <span class="badge-label">Customer Satisfaction</span>
+          </div>
+          <h3 class="slide-title">Total Happy Customers</h3>
+          <div class="slide-metric">
+            <span class="metric-number">{{ totalCustomers }}</span>
+            <span class="metric-unit">+ Customers Served</span>
+          </div>
+          <p class="slide-desc">
+            Serving delight, trust, and seamless hospitality every single day with VyparSetu.
+          </p>
+          <div class="slide-actions">
+            <button type="button" class="btn-slide-cta" (click)="navigateTo('/home/customers')">
+              <i class="fa-solid fa-users"></i> View Customer Directory
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Side Brand Showcase Card -->
+        <div class="slide-right-brand">
+          <div class="brand-card-inner">
+            <div class="brand-card-logo-box">
+              <img src="assets/Logo.png" alt="Logo" class="slide-card-logo" />
+            </div>
+            <div class="brand-card-biz">
+              <span class="card-biz-name">{{ businessName }}</span>
+              <span class="card-biz-badge"><i class="fa-solid fa-circle-check"></i> Verified Partner</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 1: Hotel Staff & Today's Attendance -->
+      <div class="carousel-slide slide-staff" [class.active]="currentSlide === 1">
+        <div class="slide-overlay"></div>
+        <div class="slide-content">
+          <div class="slide-badge badge-teal">
+            <span class="badge-icon">👥</span>
+            <span class="badge-label">Hotel Staff & Daily Attendance</span>
+          </div>
+          <h3 class="slide-title">Today's Staff Presence & Attendance</h3>
+          <div class="slide-metric-row">
+            <div class="mini-metric">
+              <span class="val text-gold">{{ staffSummary.totalStaff }}</span>
+              <span class="lbl">Total Staff</span>
+            </div>
+            <div class="mini-divider"></div>
+            <div class="mini-metric">
+              <span class="val text-green">{{ staffSummary.present }}</span>
+              <span class="lbl">Present Today</span>
+            </div>
+            <div class="mini-divider"></div>
+            <div class="mini-metric">
+              <span class="val text-red">{{ staffSummary.absent }}</span>
+              <span class="lbl">Absent Today</span>
+            </div>
+            <div class="mini-divider"></div>
+            <div class="mini-metric">
+              <span class="val text-amber">{{ staffSummary.halfDay + staffSummary.paidLeave }}</span>
+              <span class="lbl">Leave / Half</span>
+            </div>
+          </div>
+          <p class="slide-desc">
+            Live team presence tracking, auto-marked daily attendance, and monthly calendar logs.
+          </p>
+          <div class="slide-actions">
+            <button type="button" class="btn-slide-cta" (click)="navigateTo('/home/staff')">
+              <i class="fa-solid fa-id-badge"></i> Manage Staff & Attendance
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 2: Live Room Status & Occupancy -->
+      <div class="carousel-slide slide-1" [class.active]="currentSlide === 2">
+        <div class="slide-overlay"></div>
+        <div class="slide-content">
+          <div class="slide-badge">
+            <span class="badge-icon">🏨</span>
+            <span class="badge-label">Hotel Occupancy</span>
+          </div>
+          <h3 class="slide-title">Total Rooms & Live Capacity</h3>
+          <div class="slide-metric-row">
+            <div class="mini-metric">
+              <span class="val text-green">{{ availableRooms.length }}</span>
+              <span class="lbl">Available</span>
+            </div>
+            <div class="mini-divider"></div>
+            <div class="mini-metric">
+              <span class="val text-orange">{{ occupiedRooms.length }}</span>
+              <span class="lbl">Occupied</span>
+            </div>
+            <div class="mini-divider"></div>
+            <div class="mini-metric">
+              <span class="val text-gold">{{ totalRooms }}</span>
+              <span class="lbl">Total Rooms</span>
+            </div>
+          </div>
+          <p class="slide-desc">
+            Instantly view room availability, guest check-ins, and floor-wise distributions.
+          </p>
+          <div class="slide-actions">
+            <button type="button" class="btn-slide-cta" (click)="navigateTo('/home/rooms')">
+              <i class="fa-solid fa-bed"></i> Manage All Rooms
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 3: Cleaning & Housekeeping Queue -->
+      <div class="carousel-slide slide-2" [class.active]="currentSlide === 3">
+        <div class="slide-overlay"></div>
+        <div class="slide-content">
+          <div class="slide-badge badge-yellow">
+            <span class="badge-icon">🧹</span>
+            <span class="badge-label">Housekeeping Queue</span>
+          </div>
+          <h3 class="slide-title">Rooms in Cleaning Process</h3>
+          <div class="slide-metric">
+            <span class="metric-number text-yellow">{{ cleaningRooms.length }}</span>
+            <span class="metric-unit">
+              {{ cleaningRooms.length === 1 ? 'Room requires sanitization' : 'Rooms requiring sanitization' }}
+            </span>
+          </div>
+          <!-- Cleaning room pills preview -->
+          <div class="cleaning-pills-preview" *ngIf="cleaningRooms.length > 0">
+            @for (room of cleaningRooms; track room._id) {
+              <span class="cleaning-room-tag">
+                <i class="fa-solid fa-broom"></i> Room {{ room.roomNumber }}
+              </span>
+            }
+          </div>
+          <p class="slide-desc" *ngIf="cleaningRooms.length === 0">
+            All rooms are currently clean, inspected, and ready for immediate guest check-in.
+          </p>
+          <div class="slide-actions">
+            <button type="button" class="btn-slide-cta" (click)="scrollToCleaning()">
+              <i class="fa-solid fa-clipboard-check"></i> Inspect Cleaning Queue
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 4: Quick POS & Food Billing -->
+      <div class="carousel-slide slide-3" [class.active]="currentSlide === 4">
+        <div class="slide-overlay"></div>
+        <div class="slide-content">
+          <div class="slide-badge">
+            <span class="badge-icon">⚡</span>
+            <span class="badge-label">Fast Point of Sale</span>
+          </div>
+          <h3 class="slide-title">Instant Food & Restaurant Billing</h3>
+          <div class="slide-metric">
+            <span class="metric-number">Fast POS</span>
+            <span class="metric-unit">KOT & GST Receipt Generator</span>
+          </div>
+          <p class="slide-desc">
+            Quick item selection, table billing, custom discounts, and one-click printable receipts.
+          </p>
+          <div class="slide-actions">
+            <button type="button" class="btn-slide-cta" (click)="navigateTo('/home/billing')">
+              <i class="fa-solid fa-receipt"></i> Open Food Billing
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Carousel Arrow Buttons -->
+    <button type="button" class="carousel-nav-btn prev-btn" (click)="prevSlide()" title="Previous slide">
+      ‹
+    </button>
+    <button type="button" class="carousel-nav-btn next-btn" (click)="nextSlide()" title="Next slide">
+      ›
+    </button>
+
+    <!-- Carousel Pagination Indicators -->
+    <div class="carousel-dots">
+      @for (dot of [0, 1, 2, 3, 4]; track dot) {
+        <button
+          type="button"
+          class="dot-indicator"
+          [class.active]="currentSlide === dot"
+          (click)="goToSlide(dot)"
+          [title]="'Go to slide ' + (dot + 1)">
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- 2. SPECIAL HOUSEKEEPING SECTION: ROOMS UNDER CLEANING PROCESS -->
+  <section id="cleaningSection" class="cleaning-section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <div class="section-icon broom-icon">
+          <i class="fa-solid fa-broom"></i>
+        </div>
+        <div>
+          <h3>Rooms Under Cleaning Process ({{ cleaningRooms.length }})</h3>
+          <p>Rooms currently undergoing cleaning and maintenance before being marked available for guests</p>
+        </div>
+      </div>
+      <div class="section-actions">
+        <button type="button" class="btn-outline-action" (click)="navigateTo('/home/rooms')">
+          <i class="fa-solid fa-bed"></i> Go to Rooms Manager
+        </button>
+      </div>
+    </div>
+
+    <!-- If cleaning rooms exist -->
+    @if (cleaningRooms.length > 0) {
+      <div class="cleaning-cards-grid">
+        @for (room of cleaningRooms; track room._id) {
+          <div class="cleaning-card">
+            <div class="card-top">
+              <div class="room-number-badge">
+                <span class="room-label">Room</span>
+                <span class="room-num">{{ room.roomNumber }}</span>
+              </div>
+              <span class="cleaning-badge">
+                <span class="pulsing-dot"></span> Cleaning In Progress
+              </span>
+            </div>
+
+            <div class="card-details">
+              <div class="detail-row">
+                <span class="detail-key"><i class="fa-solid fa-layer-group"></i> Floor:</span>
+                <span class="detail-val">{{ room.floor || 'N/A' }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-key"><i class="fa-solid fa-tag"></i> Type:</span>
+                <span class="detail-val">{{ room.roomTypeId || 'Standard' }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-key"><i class="fa-solid fa-user-group"></i> Capacity:</span>
+                <span class="detail-val">{{ room.bedCapacity }} Guests</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-key"><i class="fa-solid fa-indian-rupee-sign"></i> Tariff:</span>
+                <span class="detail-val price-val">₹{{ room.price }}/night</span>
+              </div>
+            </div>
+
+            <div class="card-action">
+              <button
+                type="button"
+                class="btn-mark-ready"
+                [disabled]="actionLoadingId === room._id"
+                (click)="markRoomClean(room)">
+                @if (actionLoadingId === room._id) {
+                  <i class="fa-solid fa-spinner fa-spin"></i> Updating...
+                } @else {
+                  <i class="fa-solid fa-circle-check"></i> Mark Clean & Ready
+                }
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <!-- Empty state when no cleaning rooms -->
+      <div class="cleaning-empty-state">
+        <div class="sparkle-icon">✨</div>
+        <h4>All Rooms Are Clean & Ready!</h4>
+        <p>Filhal koi bhi room cleaning process me nahi hai. Sabhi rooms bilkul taiyar hain.</p>
+        <button type="button" class="btn-empty-action" (click)="navigateTo('/home/rooms')">
+          View All Room Statuses
+        </button>
+      </div>
+    }
+  </section>
+
+  <!-- 3. LIVE ROOM STATUS INVENTORY MATRIX -->
+  <section class="room-matrix-section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <div class="section-icon hotel-icon">
+          <i class="fa-solid fa-hotel"></i>
+        </div>
+        <div>
+          <h3>Live Room Inventory Overview</h3>
+          <p>Floor-wise categorized room numbers and instant availability summary</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="matrix-grid">
+      <!-- Available -->
+      <div class="matrix-card card-available">
+        <div class="matrix-card-header">
+          <div class="matrix-status-title">
+            <span class="status-indicator-dot dot-green"></span>
+            <h4>Available ({{ availableRooms.length }})</h4>
+          </div>
+          <span class="status-pill pill-green">Ready to Book</span>
+        </div>
+        <div class="matrix-rooms-list">
+          @if (availableRooms.length > 0) {
+            @for (room of availableRooms; track room._id) {
+              <span class="room-chip chip-green" (click)="navigateTo('/home/rooms')">
+                Room {{ room.roomNumber }}
+              </span>
+            }
+          } @else {
+            <p class="no-rooms-hint">No available rooms</p>
+          }
+        </div>
+      </div>
+
+      <!-- Occupied -->
+      <div class="matrix-card card-occupied">
+        <div class="matrix-card-header">
+          <div class="matrix-status-title">
+            <span class="status-indicator-dot dot-red"></span>
+            <h4>Occupied ({{ occupiedRooms.length }})</h4>
+          </div>
+          <span class="status-pill pill-red">Guest Staying</span>
+        </div>
+        <div class="matrix-rooms-list">
+          @if (occupiedRooms.length > 0) {
+            @for (room of occupiedRooms; track room._id) {
+              <span class="room-chip chip-red" (click)="navigateTo('/home/rooms')">
+                Room {{ room.roomNumber }}
+              </span>
+            }
+          } @else {
+            <p class="no-rooms-hint">No rooms currently occupied</p>
+          }
+        </div>
+      </div>
+
+      <!-- Cleaning -->
+      <div class="matrix-card card-cleaning">
+        <div class="matrix-card-header">
+          <div class="matrix-status-title">
+            <span class="status-indicator-dot dot-yellow"></span>
+            <h4>Cleaning ({{ cleaningRooms.length }})</h4>
+          </div>
+          <span class="status-pill pill-yellow">Housekeeping</span>
+        </div>
+        <div class="matrix-rooms-list">
+          @if (cleaningRooms.length > 0) {
+            @for (room of cleaningRooms; track room._id) {
+              <span class="room-chip chip-yellow" (click)="markRoomClean(room)" title="Click to mark clean">
+                Room {{ room.roomNumber }} 🧹
+              </span>
+            }
+          } @else {
+            <p class="no-rooms-hint">No rooms in cleaning</p>
+          }
+        </div>
+      </div>
+
+      <!-- Maintenance / Blocked -->
+      <div class="matrix-card card-maintenance">
+        <div class="matrix-card-header">
+          <div class="matrix-status-title">
+            <span class="status-indicator-dot dot-gray"></span>
+            <h4>Maintenance / Other ({{ maintenanceRooms.length }})</h4>
+          </div>
+          <span class="status-pill pill-gray">Blocked</span>
+        </div>
+        <div class="matrix-rooms-list">
+          @if (maintenanceRooms.length > 0) {
+            @for (room of maintenanceRooms; track room._id) {
+              <span class="room-chip chip-gray" (click)="navigateTo('/home/rooms')">
+                Room {{ room.roomNumber }}
+              </span>
+            }
+          } @else {
+            <p class="no-rooms-hint">No maintenance blocks</p>
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. QUICK SHORTCUTS ROW -->
+  <section class="shortcuts-section">
+    <h4 class="shortcuts-title">Quick Actions & Workflows</h4>
+    <div class="shortcuts-grid">
+      <div class="shortcut-card" (click)="navigateTo('/home/billing')">
+        <div class="shortcut-icon icon-orange"><i class="fa-solid fa-receipt"></i></div>
+        <div class="shortcut-text">
+          <h5>Create Food Bill</h5>
+          <p>Instant table order & POS receipt</p>
+        </div>
+      </div>
+
+      <div class="shortcut-card" (click)="navigateTo('/home/rooms')">
+        <div class="shortcut-icon icon-blue"><i class="fa-solid fa-bed"></i></div>
+        <div class="shortcut-text">
+          <h5>Book a Room</h5>
+          <p>Guest check-in & room tariff</p>
+        </div>
+      </div>
+
+      <div class="shortcut-card" (click)="navigateTo('/home/customers')">
+        <div class="shortcut-icon icon-green"><i class="fa-solid fa-user-plus"></i></div>
+        <div class="shortcut-text">
+          <h5>Add Customer</h5>
+          <p>Save customer info & ledger</p>
+        </div>
+      </div>
+
+      <div class="shortcut-card" (click)="navigateTo('/home/menu-items')">
+        <div class="shortcut-icon icon-purple"><i class="fa-solid fa-utensils"></i></div>
+        <div class="shortcut-text">
+          <h5>Food Menu Items</h5>
+          <p>Manage dishes, prices & categories</p>
+        </div>
+      </div>
+
+      <div class="shortcut-card" (click)="navigateTo('/home/staff')">
+        <div class="shortcut-icon icon-teal"><i class="fa-solid fa-id-badge"></i></div>
+        <div class="shortcut-text">
+          <h5>Staff & Attendance</h5>
+          <p>Daily check-ins & monthly calendar</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

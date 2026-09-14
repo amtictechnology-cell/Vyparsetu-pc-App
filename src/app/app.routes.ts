@@ -31,7 +31,11 @@ export const routes: Routes = [
     component: Dashboard,
     canActivate: [authGuard],
     children: [
-      { path: '', redirectTo: 'profile', pathMatch: 'full' },
+      { path: '', redirectTo: 'insights', pathMatch: 'full' },
+      { 
+        path: 'insights', 
+        loadComponent: () => import('./features/dashboard/insights/insights').then(m => m.Insights) 
+      },
       { path: 'profile', component: Profile },
       { 
         path: 'rooms', 
@@ -52,8 +56,17 @@ export const routes: Routes = [
       {
         path: 'billing',
         loadComponent: () => import('./features/billing/food-billing/food-billing').then(m => m.FoodBilling)
+      },
+      {
+        path: 'staff',
+        loadComponent: () => import('./features/staff/staff-management/staff-management').then(m => m.StaffManagement)
+      },
+      {
+        path: 'staff/:id',
+        loadComponent: () => import('./features/staff/staff-profile/staff-profile').then(m => m.StaffProfile)
       }
     ]
   },
+  { path: 'staff', redirectTo: 'home/staff', pathMatch: 'full' },
   { path: '**', redirectTo: '' }
 ];
